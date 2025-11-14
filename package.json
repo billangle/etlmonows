@@ -1,0 +1,19 @@
+{
+  "name": "@rightangle/cdk-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run -ws build",
+    "clean": "npm run -ws clean || true",
+    "synth": "npm run -ws synth",
+    "deploy": "npm run -ws deploy",
+    "bootstrap": "npm run -ws bootstrap"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
