@@ -5,7 +5,6 @@
     "outDir": "dist"
   },
   "include": [
-    "bin",
-    "lib"
+    "src"
   ]
 }
