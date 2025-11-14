@@ -32,10 +32,13 @@ interface EtlStackProps extends cdk.StackProps {
 const glueRootPath = 'src/glue/';
 const lambdaRootPath = 'src/lambda/';
 
+
 export class CarsDataPipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: EtlStackProps) {
     super(scope, id, props);
 
+
+    const projectName = props.project.toUpperCase();
 
     // === Get S3 bucket names and role ARNs from SSM ===
     const landingBucketName = StringParameter.valueForStringParameter(this, 'fpacFsaLandingBucketSSMName');
@@ -67,42 +70,42 @@ export class CarsDataPipelineStack extends cdk.Stack {
 
     // The Glue ETL script for moving Landing Zone 
    
-    const step1GlueJob = new FpacGlueJob(this, 'LandingFilesGlueJob', {
+    const step1GlueJob = new FpacGlueJob(this, `${projectName}-LandingFilesGlueJob`, {
       env: props.deployEnv,
       role: glueJobRole,
       scriptLocation: `${glueRootPath}landingFiles/landing_job.py`,
       landingBucket: landingBucket.bucketName,
       cleanBucket: cleanBucket.bucketName,
       finalBucket: finalBucket.bucketName,
-      jobType: 'CARS-LandingFiles',
+      jobType: `${projectName}-LandingFiles`,
       stepName: 'Step1',
       project: props.project,
     });
 
     // Step 2:The Glue ETL script for cleaningJob data from Landing to Cleaned zone
    
-    const step2GlueJob = new FpacGlueJob(this, 'CleansedFilesGlueJob', {
+    const step2GlueJob = new FpacGlueJob(this, `${projectName}-CleansedFilesGlueJob`, {
       env: props.deployEnv,
       role: glueJobRole,
       scriptLocation: `${glueRootPath}cleaningFiles/cleaning_job.py`,
       landingBucket: landingBucket.bucketName,
       cleanBucket: cleanBucket.bucketName,
       finalBucket: finalBucket.bucketName,
-      jobType: 'CARS-CleansedFiles',
+      jobType: `${projectName}-CleansedFiles`,
       stepName: 'Step2',
       project: props.project,
     });
 
      // Step 3 The Glue ETL script for processing data from Cleaned to Final zone
     
-    const step3GlueJob = new FpacGlueJob(this, 'FinalFilesGlueJob', {
+    const step3GlueJob = new FpacGlueJob(this, `${projectName}-FinalFilesGlueJob`, {
       env: props.deployEnv,
       role: glueJobRole,
       scriptLocation: `${glueRootPath}finalFiles/final_job.py`,
       landingBucket: landingBucket.bucketName,
       cleanBucket: cleanBucket.bucketName,
       finalBucket: finalBucket.bucketName,
-      jobType: 'CARS',
+      jobType: `${projectName}`,
       stepName: 'Step3',
       project: props.project,
     });
@@ -127,8 +130,8 @@ export class CarsDataPipelineStack extends cdk.Stack {
     // ===== Glue Crawler (targets processed/output) – L1 =====
     finalBucket.grantRead(crawlerRole);
 
-    const crawlerName = `FSA-${props.deployEnv}-CARS-CRAWLER`;
-    const crawler = new glue_l1.CfnCrawler(this, 'FpacFsaProcessedCrawler', {
+    const crawlerName = `FSA-${props.deployEnv}-${projectName}-CRAWLER`;
+    const crawler = new glue_l1.CfnCrawler(this, `${projectName}-ProcessedCrawler`, {
       name: crawlerName,
       role: crawlerRole.roleArn,
       databaseName: databaseName,
@@ -145,7 +148,7 @@ export class CarsDataPipelineStack extends cdk.Stack {
 
 
     // Conditional trigger: run crawler when ETL job succeeds
-    const crawlerTrigger = new glue_l1.CfnTrigger(this, 'CrawlerTrigger', {
+    const crawlerTrigger = new glue_l1.CfnTrigger(this, `${projectName}-CrawlerTrigger`, {
       name: `${cdk.Stack.of(this).stackName}-crawler-trigger`,
       type: 'CONDITIONAL',
       workflowName: step3GlueJob.workflow.name!,
@@ -164,9 +167,9 @@ export class CarsDataPipelineStack extends cdk.Stack {
     crawlerTrigger.addDependency(crawler);
 
     // ===== Validator Lambda =====
-    const validatorFn = new lambda.Function(this, 'ValidatorFn', {
+    const validatorFn = new lambda.Function(this, `${projectName}-ValidatorFn`, {
       runtime: lambda.Runtime.NODEJS_20_X,
-      functionName: `FSA-${props.deployEnv}-CARS-Validator`,
+      functionName: `FSA-${props.deployEnv}-${projectName}-Validator`,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(`${lambdaRootPath}Validate`),
       environment: { LANDING_BUCKET: landingBucket.bucketName, PROJECT: props.project },
@@ -175,7 +178,7 @@ export class CarsDataPipelineStack extends cdk.Stack {
     landingBucket.grantRead(validatorFn);
 
     // ===== Step Functions: Validate → Run ETL → Start Crawler → Success/Fail =====
-    const validateTask = new tasks.LambdaInvoke(this, 'Validate input', {
+    const validateTask = new tasks.LambdaInvoke(this, `${projectName}-ValidateInput`, {
       lambdaFunction: validatorFn,
       outputPath: '$.Payload',
     });
@@ -183,7 +186,7 @@ export class CarsDataPipelineStack extends cdk.Stack {
    
 
     // Start crawler (does not wait for completion)
-    const startCrawler = new tasks.GlueStartCrawlerRun(this, 'Start Processed Crawler', {
+    const startCrawler = new tasks.GlueStartCrawlerRun(this, `Start ${projectName} Processed Crawler`, {
       crawlerName: crawler.name!,
       resultPath: '$.glueResult',
     });
@@ -194,7 +197,7 @@ export class CarsDataPipelineStack extends cdk.Stack {
 
       
 
-    const logGlueResults = new sfn.Pass(this, 'Log Glue Results', {
+    const logGlueResults = new sfn.Pass(this, `Log ${projectName} Glue Results`, {
         parameters: {
           'jobDetails.$': '$.glueResult',
           'timestamp.$': '$$.State.EnteredTime'
@@ -216,8 +219,8 @@ export class CarsDataPipelineStack extends cdk.Stack {
 
 
 
-    const stateMachine = new sfn.StateMachine(this, 'CarsPipelineStateMachine', {
-      stateMachineName: `FSA-${props.deployEnv}-CARS-Pipeline`,
+    const stateMachine = new sfn.StateMachine(this, `${projectName}-PipelineStateMachine`, {
+      stateMachineName: `FSA-${props.deployEnv}-${projectName}-Pipeline`,
       definitionBody: sfn.DefinitionBody.fromChainable(definition),
       logs: {
         destination: new logs.LogGroup(this, 'StateMachineLogs', {
@@ -229,7 +232,7 @@ export class CarsDataPipelineStack extends cdk.Stack {
     });
 
 
-    new cdk.CfnOutput(this, 'CarsStateMachineArn', { value: stateMachine.stateMachineArn });
+    new cdk.CfnOutput(this, `${projectName}StateMachineArn`, { value: stateMachine.stateMachineArn });
 
     
   }

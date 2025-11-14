@@ -1,6 +1,6 @@
 
 import * as iam from "aws-cdk-lib/aws-iam"
-import { Function, Runtime, AssetCode  } from "aws-cdk-lib/aws-lambda"
+import { Function, Runtime, AssetCode, ILayerVersion } from "aws-cdk-lib/aws-lambda"
 import { Duration, StackProps } from "aws-cdk-lib"
 import { Construct } from "constructs"
 
@@ -10,6 +10,7 @@ interface LambdaApiStackProps extends StackProps {
     functionCode: string,
     role: iam.IRole,
     environment: any,
+    layers?: ILayerVersion[],
 }
 
 export class FpacLambda extends Construct {
@@ -28,6 +29,7 @@ export class FpacLambda extends Construct {
             role: props.role,
             timeout: Duration.seconds(30),
             environment: props.environment,
+            layers: props.layers,
        
         })
 
