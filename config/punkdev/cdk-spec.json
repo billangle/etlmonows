@@ -2,7 +2,7 @@
     "landingBucketName": "fpacfsa-landing-zone",
     "cleanBucketName": "fpacfsa-cleansed-zone",
     "finalBucketName": "fpacfsa-final-zone",
-    "databaseName": "fsa-dev-cars",
+    "databaseName": "fsa-fpac-db",
     "region": "us-east-1",
-    "dynamoTableName": "FSA-dev-cars-metadata"
+    "dynamoTableName": "FsaFpacMetadata"
 }
