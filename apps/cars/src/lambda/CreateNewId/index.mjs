@@ -13,9 +13,10 @@ const ddb = new DynamoDBClient();
 export const handler = async (event) => {
   // Accept either { jobDetails, timestamp } payload or the raw logged structure
   const jobDetails = event.jobDetails || (event.logged && event.logged.jobDetails) || event;
-  const timestamp = event.timestamp || (event.logged && event.logged.timestamp) || new Date().toISOString();
-  const jobId = jobDetails && (jobDetails.JobRunId || jobDetails.Id || jobDetails.jobRunId);
+  const timestamp = new Date().toISOString();
+  const jobId = uuidv4();
   const tableName = process.env.TABLE_NAME;
+  const project = process.env.PROJECT;
 
   console.log("PutGlueResult: event: " + JSON.stringify(event));
 
@@ -27,6 +28,7 @@ export const handler = async (event) => {
     jobId: jobId,
     jobState: jobDetails.JobRunState || jobDetails.jobRunState || null,
     timestamp: timestamp,
+    project: project,
     fullResponse: jobDetails,
   };
   

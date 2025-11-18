@@ -13,6 +13,7 @@ import * as glue from '@aws-cdk/aws-glue-alpha';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { FpacGlueJob } from '@fpacfsa/constructs/FpacGlueJob';
 import { ProjectS3Folders } from '@fpacfsa/constructs/ProjectS3Folders';
+import { FpacLambda } from '@fpacfsa/constructs/FpacLambda';
 
 
 interface ConfigurationData {
@@ -21,6 +22,7 @@ interface ConfigurationData {
   finalBucketName: string;
   databaseName: string;
   region: string;
+  dynamoTableName: string;
 };
 
 interface EtlStackProps extends cdk.StackProps {
@@ -66,6 +68,11 @@ export class CarsDataPipelineStack extends cdk.Stack {
       finalBucket: finalBucket,
     });
 
+    // ===== Getting layers from SSM =====
+    const thirdPartyLayerArn = StringParameter.valueForStringParameter(this, 'fpacfsaThirdPartyLayerArn');
+    const thirdPartyLayer = lambda.LayerVersion.fromLayerVersionArn(this, 'ThirdPartyLayer', thirdPartyLayerArn);
+
+
     // ===== Glue ETL Jobs =====
 
     // The Glue ETL script for moving Landing Zone 
@@ -110,6 +117,18 @@ export class CarsDataPipelineStack extends cdk.Stack {
       project: props.project,
     });
 
+    // ==== Lambda to create UUID id for step 1 ====
+
+    const step1CreateNewId = new FpacLambda (this, `${projectName}-Step1Lambda`, {
+      functionName: `FSA-${props.deployEnv}-${projectName}-CreateNewId`,
+      functionCode: `${lambdaRootPath}CreateNewId`,
+      role: etlLambdaRole,
+      environment: {
+        PROJECT: props.project,
+        TABLE_NAME: props.configData.dynamoTableName,
+      },
+      layers: [thirdPartyLayer],
+    });
 
     // ===== Glue Data Catalog (Database) – L1 =====
     
