@@ -18,6 +18,8 @@ interface ConfigurationData {
   databaseName: string;
   region: string;
   dynamoTableName: string;
+  glueRoleName: string;
+  lambdaRoleName: string;
 };
 
 interface EtlStackProps extends cdk.StackProps {
@@ -91,11 +93,18 @@ export class FpacFsaInfraStack extends cdk.Stack {
         }));
 
 
+     const glueRoleARNStr = `arn:aws:iam::${cdk.Stack.of(this).account}:role/${props.configData.glueRoleName}`;
+     const glueJobRole2 = iam.Role.fromRoleArn(this, 'GlueJobRoleFromARN', glueRoleARNStr, { mutable: false });
+
+
+
+
     // Allow Glue job to read the script and buckets
     landingBucket.grantReadWrite(glueJobRole);
     cleanBucket.grantReadWrite(glueJobRole);
     finalBucket.grantReadWrite(glueJobRole);
 
+    
     const fpacFsaLambdaExecutionRole = new iam.Role(this, `FpacFsaLambdaExecutionRole-${props.deployEnv}`, {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       managedPolicies: [
@@ -115,7 +124,11 @@ export class FpacFsaInfraStack extends cdk.Stack {
       resources: ['*']
     }));
 
+
+    const lambdaRoleARNStr = `arn:aws:iam::${cdk.Stack.of(this).account}:role/${props.configData.lambdaRoleName}`;
+    const fpacFsaLambdaExecutionRole2 = iam.Role.fromRoleArn(this, 'FpacFsaLambdaExecutionRoleFromARN', lambdaRoleARNStr, { mutable: false });
     
+
     // ===== Glue Data Catalog (Database) – L1 =====
    
     const databaseName = props.configData.databaseName;
@@ -130,6 +143,12 @@ export class FpacFsaInfraStack extends cdk.Stack {
     const ssmEtlGlueJobRole = new StringParameter (this, `fpacFsaGlueJobRoleSSM-${props.deployEnv}`, {
       parameterName: 'fpacFsaGlueJobRoleSSMArn',
       stringValue: glueRoleARN
+   });
+
+     const glueRoleARN2 = glueJobRole2.roleArn;
+    const ssmEtlGlueJobRole2 = new StringParameter (this, `fpacFsaGlueJobRoleSSM-${props.deployEnv}2`, {
+      parameterName: 'fpacFsaGlueJobRoleSSMArn2',
+      stringValue: glueRoleARN2
    });
 
 
@@ -161,6 +180,12 @@ export class FpacFsaInfraStack extends cdk.Stack {
   const ssmEtlRoleARN = new StringParameter(this, `fpacFsaLambdaExecuteRoleARN-${props.deployEnv}`, {
     parameterName: 'fpacFsaLambdaExecuteRoleARN',
     stringValue: fpacFsaLambdaExecutionRoleARN
+  });
+
+   const fpacFsaLambdaExecutionRoleARN2 = fpacFsaLambdaExecutionRole.roleArn;
+  const ssmEtlRoleARN2 = new StringParameter(this, `fpacFsaLambdaExecuteRoleARN-${props.deployEnv}2`, {
+    parameterName: 'fpacFsaLambdaExecuteRoleARN2',
+    stringValue: fpacFsaLambdaExecutionRoleARN2
   });
 
 

@@ -1,0 +1,16 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "lambda:InvokeFunction",
+                "s3:GetObject",
+                "s3:ListBucket",
+                "ssm:GetParameter",
+                "ssm:PutParameter"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        }
+    ]
+}

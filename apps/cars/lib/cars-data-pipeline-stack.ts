@@ -35,12 +35,12 @@ const glueRootPath = 'src/glue/';
 const lambdaRootPath = 'src/lambda/';
 
 
-export class CarsDataPipelineStack extends cdk.Stack {
+export class FpacCarsDataPipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: EtlStackProps) {
     super(scope, id, props);
 
 
-    const projectName = props.project.toUpperCase();
+    const projectName = `Fpac${props.project.toUpperCase()}`;
 
     // === Get S3 bucket names and role ARNs from SSM ===
     const landingBucketName = StringParameter.valueForStringParameter(this, 'fpacFsaLandingBucketSSMName');
@@ -205,11 +205,12 @@ export class CarsDataPipelineStack extends cdk.Stack {
    
 
     // Start crawler (does not wait for completion)
+    /*
     const startCrawler = new tasks.GlueStartCrawlerRun(this, `Start ${projectName} Processed Crawler`, {
       crawlerName: crawler.name!,
       resultPath: '$.glueResult',
     });
-
+*/
  
     const success = new sfn.Succeed(this, 'Success');
     const fail = new sfn.Fail(this, 'Fail');
@@ -230,7 +231,7 @@ export class CarsDataPipelineStack extends cdk.Stack {
         .next(step2GlueJob.task)
         .next(step3GlueJob.task)
         .next(logGlueResults)
-        .next(startCrawler)
+       // .next(startCrawler)
         .next(new sfn.Choice(this, 'Was Glue successful?')
           .when(sfn.Condition.stringEquals('$.logged.jobDetails.JobRunState', 'SUCCEEDED'), success)
           .otherwise(fail));

@@ -2,7 +2,7 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import * as fs from 'fs';
-import { CarsDataPipelineStack } from '../lib/cars-data-pipeline-stack';
+import { FpacCarsDataPipelineStack } from '../lib/cars-data-pipeline-stack';
 
 const app = new cdk.App();
 
@@ -10,7 +10,7 @@ let environment = process.env.DEPLOY_ENV || '';
 const envdata = fs.readFileSync("../../config/" + environment + '/cdk-spec.json', 'utf8');
 const configData = JSON.parse(envdata);
 
-new CarsDataPipelineStack(app, 'CarsDataPipelineStack', {
+new FpacCarsDataPipelineStack(app, 'FpacCarsDataPipelineStack', {
   env: {
     account: process.env.CDK_ACCOUNT,
     region: configData.region,

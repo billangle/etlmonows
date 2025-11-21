@@ -3,8 +3,6 @@
     "cleanBucketName": "fpacfsa-cleansed-zone",
     "finalBucketName": "fpacfsa-final-zone",
     "databaseName": "fsa-fpac-db",
-    "region": "us-east-1",
-    "dynamoTableName": "FsaFpacMetadata",
-    "glueRoleName": "FPACGlueCDKRole",
-    "lambdaRoleName": "FPACLambdaCDKRole"
+    "region": "us-west-2",
+    "dynamoTableName": "FsaFpacMetadata"
 }

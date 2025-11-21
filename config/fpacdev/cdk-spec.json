@@ -4,5 +4,7 @@
     "finalBucketName": "fpacfsa-final-zone",
     "databaseName": "fsa-dev-cars",
     "region": "us-east-2",
-    "dynamoTableName": "FSA-dev-cars-metadata"
+    "dynamoTableName": "FSA-dev-cars-metadata",
+    "glueRoleName": "FPACGlueCDKRole",
+    "lambdaRoleName": "FPACLambdaCDKRole"
 }
