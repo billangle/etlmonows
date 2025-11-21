@@ -1,0 +1,37 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowBootstrapCore",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateChangeSet",
+        "cloudformation:ExecuteChangeSet",
+        "cloudformation:DeleteChangeSet",
+        "cloudformation:DescribeChangeSet",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:DescribeStackResource",
+        "cloudformation:DescribeStackResources",
+        "cloudformation:ListStacks",
+        "cloudformation:ListStackResources",
+        "cloudformation:GetTemplate",
+        "cloudformation:ValidateTemplate",
+        "cloudformation:TagResource",
+        "cloudformation:UntagResource",
+        "cloudformation:DeleteStack",
+        "s3:*",
+        "ssm:*"
+      ],
+      "Resource": "*"
+    },
+     {
+      "Sid": "AllowPassCdkBootstrapRoles",
+      "Effect": "Allow",
+      "Action": [
+            "iam:PassRole"    
+      ],
+      "Resource": "arn:aws:iam::*:role/cdk-*"
+    }
+  ]
+}
