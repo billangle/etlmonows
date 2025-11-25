@@ -201,7 +201,7 @@ There are over thirty data pipelines, which each has it's own BitBucket reposito
 
 ## 5.4 CI/CD Deployment Pipelines
 
-The mono-repo in BitBucket, currently called FPAC-CDK, will have three application CI/CD pipelines. There will be a pipeline to deploy to the DEV environment, a pipeline to deploy to STAGING and a pipeline to deploy to PROD. These pipelines will utilize the IAM deployer user to run the cdk cli and deploy resources.
+The mono-repo in BitBucket, currently called FPAC-CDK, will have three CDK data application CI/CD pipelines. There will be a pipeline to deploy to the DEV environment, a pipeline to deploy to STAGING and a pipeline to deploy to PROD. These pipelines will utilize the IAM deployer user to run the cdk cli and deploy resources.
 
 The mono-repo will also have three infrastructure pipelines, for DEV, STAGING and PROD. These will be used to deploy shared resources, such as S3 buckets, glue databases and other shared AWS services.
 
@@ -230,7 +230,7 @@ On each account the deployer IAM user must be created and have the deployer IAM 
 
 ## 6.4 AWS CDK bootstrap
 
-The AWS CDK bootstrap is a critical one-time action, that is required to enable the AWS CDK. The architecture is utilizing this required process to provide access to the requires AWS services. The details of the bootstrap process and installing the AWS CDK are defined in section 7.3, "AWS CDK Bootstrapping".
+The AWS CDK bootstrap is a critical one-time action, that is required to enable the AWS CDK. The architecture is utilizing this required process to provide access to the required AWS services. The details of the bootstrap process and installing the AWS CDK are defined in section 7.3, "AWS CDK Bootstrapping". An AWS IAM user will Full Admin must execute the bootstrap process. In this solution, the deployer IAM user is not capable of performing the bootstrap.
 
 The following accounts and regions must be bootstrapped:
 
@@ -259,7 +259,7 @@ The IAM user for CI/CD deployments. The prefered name is **fpac_cicd_deployer**.
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "AllowBootstrapCore",
+      "Sid": "AllowCore",
       "Effect": "Allow",
       "Action": [
         "cloudformation:CreateChangeSet",
@@ -283,7 +283,7 @@ The IAM user for CI/CD deployments. The prefered name is **fpac_cicd_deployer**.
       "Resource": "*"
     },
      {
-      "Sid": "AllowPassCdkBootstrapRoles",
+      "Sid": "AllowPassRoles",
       "Effect": "Allow",
       "Action": [
             "iam:PassRole"    
