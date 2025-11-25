@@ -68,7 +68,7 @@
         "airflow:*",
         "airflow-serverless:*",
         "codebuild:*",
-	      "codepipeline:*",
+	    "codepipeline:*",
         "events:*",
         "dsql:*",
         "cloudtrail:*",
@@ -86,7 +86,7 @@
         "redshift-serverless:*",
         "redshift-data:*",
         "kafka-cluster:*",
-	      "kinesis:*",
+	    "kinesis:*",
         "kinesisanalytics:*"
       ],
       "Resource": "*"

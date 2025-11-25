@@ -1,0 +1,225 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudFormationLimited",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:DescribeStackResource",
+        "cloudformation:DescribeStackResources",
+        "cloudformation:ListStacks",
+        "cloudformation:ListStackResources",
+        "cloudformation:GetTemplate",
+        "cloudformation:ValidateTemplate",
+        "cloudformation:TagResource",
+        "cloudformation:UntagResource"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowIAMRoleManagementForCDK",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:UpdateRole",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::*:role/Fpac*"
+    },
+    {
+      "Sid": "AllowIAMRoleManagementLimited",
+      "Effect": "Allow",
+      "Action": [
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:GetRole",
+        "iam:PassRole",
+        "iam:ListRoles",
+        "iam:GetRolePolicy",
+        "iam:ListRolePolicies"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowTagging",
+      "Effect": "Allow",
+      "Action": [
+        "tag:*",
+        "sts:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowLogsAndObservability",
+      "Effect": "Allow",
+      "Action": [
+        "logs:*",
+        "cloudtrail:*",
+        "observabilityadmin:*",
+        "applicationinsights:*",
+        "evidently:*",
+        "synthetics:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowS3Management",
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowBigData",
+      "Effect": "Allow",
+      "Action": [
+        "datapipeline:*",
+        "databrew:*",
+        "dms:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowLambdaManagement",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowDynamoDB",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowAuroraAndRDSManagement",
+      "Effect": "Allow",
+      "Action": [
+        "rds:*",
+        "rds-data:*",
+        "secretsmanager:*",
+        "kms:*",
+        "dsql:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowEventBridgeManagement",
+      "Effect": "Allow",
+      "Action": [
+        "events:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowSQSManagement",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowGlueManagement",
+      "Effect": "Allow",
+      "Action": [
+        "glue:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowMWAA",
+      "Effect": "Allow",
+      "Action": [
+        "airflow:*",
+        "airflow-serverless:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowRedshift",
+      "Effect": "Allow",
+      "Action": [
+        "redshift:*",
+        "redshift-serverless:*",
+        "redshift-data:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowStepFunctionsManagement",
+      "Effect": "Allow",
+      "Action": [
+        "states:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowSNS",
+      "Effect": "Allow",
+      "Action": [
+        "sns:*",
+        "ses:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowAthena",
+      "Effect": "Allow",
+      "Action": [
+        "athena:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowSSMParameters",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowStreamingData",
+      "Effect": "Allow",
+      "Action": [
+       "kafka-cluster:*",
+	     "kinesis:*",
+       "kinesisanalytics:*"
+      ],
+      "Resource": "*"
+    },
+     {
+      "Sid": "AllowBuildTools",
+      "Effect": "Allow",
+      "Action": [
+       "codebuild:*",
+	     "codepipeline:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowReadOnlyEC2Networking",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeSubnets",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeRouteTables"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

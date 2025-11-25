@@ -325,7 +325,7 @@ This policy has been tested using AWS CDK solutions that mimic the work done by 
       "Resource": "*"
     },
     {
-      "Sid": "AllowIAMRoleManagementForCDK",
+      "Sid": "AllowLimitedIAMRoleManagementForCDK",
       "Effect": "Allow",
       "Action": [
         "iam:CreateRole",
@@ -351,156 +351,46 @@ This policy has been tested using AWS CDK solutions that mimic the work done by 
       "Resource": "*"
     },
     {
-      "Sid": "AllowTagging",
+      "Sid": "AllowAWSServices",
       "Effect": "Allow",
       "Action": [
         "tag:*",
-        "sts:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowLogsAndObservability",
-      "Effect": "Allow",
-      "Action": [
+        "ssm:*",
+        "sts:*",
+        "s3:*",
+        "lambda:*",
+        "states:*",
+        "glue:*",
+        "dms:*",
         "logs:*",
+        "dynamodb:*",
+        "athena:*",
+        "sns:*",
+        "kms:*",
+        "sqs:*",
+        "airflow:*",
+        "airflow-serverless:*",
+        "codebuild:*",
+	      "codepipeline:*",
+        "events:*",
+        "dsql:*",
         "cloudtrail:*",
         "observabilityadmin:*",
         "applicationinsights:*",
         "evidently:*",
-        "synthetics:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowS3Management",
-      "Effect": "Allow",
-      "Action": [
-        "s3:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowBigData",
-      "Effect": "Allow",
-      "Action": [
+        "synthetics:*",
         "datapipeline:*",
         "databrew:*",
-        "dms:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowLambdaManagement",
-      "Effect": "Allow",
-      "Action": [
-        "lambda:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowDynamoDB",
-      "Effect": "Allow",
-      "Action": [
-        "dynamodb:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowAuroraAndRDSManagement",
-      "Effect": "Allow",
-      "Action": [
+        "ses:*",
         "rds:*",
         "rds-data:*",
         "secretsmanager:*",
-        "kms:*",
-        "dsql:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowEventBridgeManagement",
-      "Effect": "Allow",
-      "Action": [
-        "events:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowSQSManagement",
-      "Effect": "Allow",
-      "Action": [
-        "sqs:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowGlueManagement",
-      "Effect": "Allow",
-      "Action": [
-        "glue:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowMWAA",
-      "Effect": "Allow",
-      "Action": [
-        "airflow:*",
-        "airflow-serverless:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowRedshift",
-      "Effect": "Allow",
-      "Action": [
         "redshift:*",
         "redshift-serverless:*",
-        "redshift-data:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowStepFunctionsManagement",
-      "Effect": "Allow",
-      "Action": [
-        "states:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowSNS",
-      "Effect": "Allow",
-      "Action": [
-        "sns:*",
-        "ses:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowAthena",
-      "Effect": "Allow",
-      "Action": [
-        "athena:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowSSMParameters",
-      "Effect": "Allow",
-      "Action": [
-        "ssm:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowStreamingData",
-      "Effect": "Allow",
-      "Action": [
-       "kafka-cluster:*",
-	   "kinesis:*",
-       "kinesisanalytics:*"
+        "redshift-data:*",
+        "kafka-cluster:*",
+	      "kinesis:*",
+        "kinesisanalytics:*"
       ],
       "Resource": "*"
     },
@@ -517,6 +407,7 @@ This policy has been tested using AWS CDK solutions that mimic the work done by 
     }
   ]
 }
+
 
 ```
 
