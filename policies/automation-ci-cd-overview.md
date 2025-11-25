@@ -197,13 +197,15 @@ The optimal solution, will have two new AWS accounts, one for DEV and one for ST
 
 ## 5.3 Transition
 
-There are over thirty data pipelines, which each has it's own BitBucket repository. The transition plan will be to rebuild each of these data pipelines as CDK applications. These CDK applications will be put in a BitBucket mono-repo, which will allow common CDK constructs to be shared across the data pipeline applications. These CDK applications will be deployed to the new DEV account and tested on the new STAGING account. The production deployment will be to us-east-2 region on the existing PROD account.
+There are over thirty data pipelines, each has it's own BitBucket repository. The transition plan will be to rebuild each of these data pipelines as CDK applications. These CDK applications will be put in a BitBucket mono-repo, which will allow common CDK constructs to be shared across the data pipeline applications. These CDK applications will be deployed to the new DEV account and tested on the new STAGING account. The production deployment will be to us-east-2 region on the existing PROD account.
 
 ## 5.4 CI/CD Deployment Pipelines
 
 The mono-repo in BitBucket, currently called FPAC-CDK, will have three CDK data application CI/CD pipelines. There will be a pipeline to deploy to the DEV environment, a pipeline to deploy to STAGING and a pipeline to deploy to PROD. These pipelines will utilize the IAM deployer user to run the cdk cli and deploy resources.
 
 The mono-repo will also have three infrastructure pipelines, for DEV, STAGING and PROD. These will be used to deploy shared resources, such as S3 buckets, glue databases and other shared AWS services.
+
+The deployment pipelines will be implemented in Jenkins, using webhooks from Jenkins, which are called by BitBucket based on specific branch, merge or tagging operations. Since there are dev, cert and prod Jenkins environments, the pipelines will utilize these environments via different web hooks. It is assumed that SSH and SSH keys can be shared from Jenkins to BitBucket, allowing Jenkins to pull the branch or tag from the mono-repo via SSH. The details of the git process, configuration and release management will be documented in a separate document.
 
 ## 5.5 Post Transition
 
