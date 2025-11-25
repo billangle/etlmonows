@@ -205,12 +205,12 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
    
 
     // Start crawler (does not wait for completion)
-    /*
+
     const startCrawler = new tasks.GlueStartCrawlerRun(this, `Start ${projectName} Processed Crawler`, {
       crawlerName: crawler.name!,
       resultPath: '$.glueResult',
     });
-*/
+
  
     const success = new sfn.Succeed(this, 'Success');
     const fail = new sfn.Fail(this, 'Fail');
@@ -231,7 +231,7 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
         .next(step2GlueJob.task)
         .next(step3GlueJob.task)
         .next(logGlueResults)
-       // .next(startCrawler)
+        .next(startCrawler)
         .next(new sfn.Choice(this, 'Was Glue successful?')
           .when(sfn.Condition.stringEquals('$.logged.jobDetails.JobRunState', 'SUCCEEDED'), success)
           .otherwise(fail));
