@@ -170,7 +170,8 @@
       "Sid": "AllowSNS",
       "Effect": "Allow",
       "Action": [
-        "sns:*"
+        "sns:*",
+        "ses:*"
       ],
       "Resource": "*"
     },
