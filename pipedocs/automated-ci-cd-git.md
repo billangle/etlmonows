@@ -1,6 +1,6 @@
 # FPAC Release Process for Automated Deployments
 
-This document describes the release process that will be utilized to support the auotmated CI/CD pipelines. 
+This document describes the release process that will be utilized to support the automated CI/CD pipelines. 
 
 ---
 # 1. Executive Summary
@@ -22,7 +22,7 @@ The automated CI/CD pipeline process will implement a set of rules that enable t
 
 ### 2.1.1 Current State
 
-The data pipeline software is maintained in a series of BitBucket repositories. There are approximately thirty repositories used for mainatining the software used by FPAC. The data pipelines are scheduled and run as batch jobs from Jenkins. There are currently three Jenkins environments, development (DEV), certification (CERT) and production (PROD). The scheduling of the jobs is implemented by manually changing the schedule in Jenkins. The master schedule is maintained as a Confluence document. There is no release process for the changes to the schedule and currently the schedule is not part of source code control.
+The data pipeline software is maintained in a series of BitBucket repositories. There are approximately thirty repositories used for maintaining the software used by FPAC. The data pipelines are scheduled and run as batch jobs from Jenkins. There are currently three Jenkins environments, development (DEV), certification (CERT) and production (PROD). The scheduling of the jobs is implemented by manually changing the schedule in Jenkins. The master schedule is maintained as a Confluence document. There is no release process for the changes to the schedule and currently the schedule is not part of source code control.
 
 ### 2.1.2 Future State Code Repository
 
@@ -57,7 +57,7 @@ During the transition period, the STAGE environment will serve temporarily as CE
 
 CERT represents the certified state of development for the next release, while STAGE provides a pre-production validation area. After a release, STAGE becomes the environment used for hotfix validation, as CERT moves forward with changes for the next version.
 
-## 3.0.2 main Branch Release Overview with Tags
+## 3.0.2 `main` Branch Release Overview with Tags
 
 The `main` branch contains production-ready code and acts as the release branch. Releases are deployed using Git tags that represent specific pull requests merged into `main`. Tags serve as immutable checkpoints, enabling rollback and supporting simultaneous development of future releases.
 
@@ -74,7 +74,7 @@ Administrators may directly commit to protected branches for specific purposes:
 - Updating automated pipeline definitions
 
 
-## 3.1 dev branch process on DEV enironment
+## 3.1 `dev` branch process on DEV environment
 
 The `dev` branch will contain the current state of development. It is a series of PRs (pull requests), from work done for features that are defined a Jira tickets. Each feature should be a branch from `dev` with the name of the Jira ticket. The DEV environment will be a series of changes related to commits made on these feature branches, directly correlated to Jira tickets. The CERT environment will have all of the approved PRs that have been merged into the dev branch. These actions will be automated via the CI/CD pipeline. 
 
@@ -86,7 +86,7 @@ The `dev` branch will contain the current state of development. It is a series o
 - All code quality and security scans must be passed for each commit, otherwise the deployment to the DEV environment will fail
 - It is at this point that any and all automated scans are run and these must be passed for every commit
 
-## 3.2 dev branch process on CERT environment
+## 3.2 `dev` branch process on CERT environment
 
 The process to promote work to the CERT environment. The feature branch will utilize a PR to merge changes to the `dev` branch. The PR process will involve a manual code review, to ensure that the code should be promoted to the CERT environment. Once the PR is approved, the CI/CD process will automatically deploy the updated `dev` branch to the CERT environment.
 
@@ -100,7 +100,7 @@ The process to promote work to the CERT environment. The feature branch will uti
 - The feature branch `DDAA-2400` is deleted after the successful merge
 - Changes based on QA testing should be done on a new feature branch - starting the process back to section 3.1
 
-## 3.3 dev branch to main deployed to STAGE environment
+## 3.3 `dev` branch to `main` deployed to STAGE environment
 
 Based on criteria external to this process, a PR will be created to merge the current state of dev to main. The STAGE environment will always contain the most current state of the main branch.
 
@@ -108,7 +108,7 @@ Based on criteria external to this process, a PR will be created to merge the cu
 - The CI/CD deployment automation is trigged by the PR from `dev` to `main`
 - User testing can cause changes to flow back through the process, so that multiple release candidates can exist
 
-## 3.4 main branch deployed to PROD environment
+## 3.4 `main` branch deployed to PROD environment
 
 The process to deploy a release to the PROD environment utilizes a tag. A tag is created on the `main` branch, for the final commit that represents a release candidate. This tag name should follow a common release naming convetion. FPAC appears to be using a date-based versioning solution, so the tag should have the convention [PI]YYYY.MM.PROD[-N], where -N is the incremental number of the next tag for this year and month combination, starting with 1. The created tag will automatically start the process to for a deployment to production. However, it is not completely automatic. The creator of the tag will need to login to to the production Jekins server to run the job, that is created. 
 
