@@ -3,10 +3,14 @@
 This document describes the release process that will be utilized to support the auotmated CI/CD pipelines. 
 
 ---
-
 # 1. Executive Summary
 
-The FPAC CI/CD pipeline deploys all changes to the data pipelines. 
+FPAC is transitioning from a predominantly manual software deployment model to a fully automated CI/CD release process designed to support consistent, traceable, and repeatable deployments of data pipeline software. This modernization introduces structured Git branching rules, enforced pull-request workflows, automated quality and security checks, and controlled promotion of code across four environments—DEV, CERT, STAGE, and PROD.
+
+In the new model, all development work begins on short-lived feature branches tied to Jira tickets. These changes are validated through automated scans and deployed to the DEV environment on every commit. Approved changes are merged into the `dev` branch, which drives deployments to CERT, where integration testing and certification occur. Once a collection of features is ready for release, the `dev` branch is merged into `main`, triggering deployment to STAGE for user acceptance testing. Production releases are promoted exclusively through Git tags applied to the `main` branch, ensuring immutable release artifacts, auditability, and rollback capability.
+
+This approach eliminates ad-hoc deployment practices and introduces governance, transparency, and automation into every stage of the deployment process. The result is a standardized and scalable release mechanism that reduces risk, accelerates delivery cycles, and aligns FPAC’s development and operations teams around a common, enforceable process.
+
 
 ---
 
@@ -100,30 +104,95 @@ Based on criteria external to this process, a PR will be created to merge the cu
 
 ## 3.4 main branch deployed to PROD environment
 
-This tag name should follow a common release naming convetion. FPAC appears to be using a date-based versioning solution, so the tag should have the convention [PI]YYYY.MM.STAGE[-N], where -N is the incremental number of the next tag for this year and month combination, starting with 1. This will represent the relase candidate on the STAGE environment for this month and year. 
+The process to deploy a release to the PROD environment utilizes a tag. A tag is created on the main branch, for the final commit that represents a release candidate. This tag name should follow a common release naming convetion. FPAC appears to be using a date-based versioning solution, so the tag should have the convention [PI]YYYY.MM.PROD[-N], where -N is the incremental number of the next tag for this year and month combination, starting with 1. The created tag will automatically start the process to for a deployment to production. However, it is not completely automatic. The creator of the tag will need to login to to the production Jekins server to run the job, that was created. 
 
-- Tagging is a manual process after the successful merge from dev to main 
 - Tag is created on the main branch
-- *EXAMPLE: First merge to main deployed to STAGE for 2026 in January would be tagged as PI2026.01.STAGE.01*
-- The STAGE tags are for reference, no automation is triggered on a STAGE tag
-- Each STAGE tag becomes a release candidate
+- *EXAMPLE: deployed to PROD for 2026 in January would be tagged as PI2026.01.PROD.01*
+- The PROD tags trigger automation, but the the process must be completed on the Jenkins server
+- Each PROD tag is a release to the PROD environment
 
 
+## 4. Summary: Branching Strategy Identification
 
-### 2.2.1 CI/CD Process Automation Steps
+This documentation describes a **GitFlow-inspired branching model** adapted to support automated CI/CD pipelines and environment-based deployments. While it does not implement the full canonical GitFlow process, it utilizes GitFlow’s core branching concepts and enhances them with environment-driven promotion rules and tag-based production releases.
 
-1. Code changes to DEV environem
-2. 
+Key characteristics of the identified strategy include:
 
+- **Two long-lived protected branches**
+  - `dev` – the integration branch where active development occurs
+  - `main` – the production-ready branch representing release candidates and deployed code
+
+- **Short-lived feature branches**
+  - Created from `dev`, named after Jira tickets, and merged back through PRs
+  - Eliminated after merge, ensuring clean history and reduced branch clutter
+
+- **Tag-driven production releases**
+  - Tags on the `main` branch represent immutable release artifacts
+  - Tags follow a date-based versioning scheme and initiate production deployment workflows
+  - Tags also provide rollback points
+
+Overall, this is best described as:
+
+**A modified GitFlow (GitFlow-lite) branching strategy with environment-based deployments and tag-driven production releases.**
 
 ---
 
+## 5. Why This Strategy Resembles GitFlow
+
+The structure closely aligns with GitFlow’s foundational components:
+
+- `main` ≈ GitFlow’s `master` (production branch)
+- `dev` ≈ GitFlow’s `develop` (integration branch)
+- Feature branches per task → merged via PRs → deleted after merge
+- Releases identified by tags on `main`
+
+These elements establish a recognizable GitFlow model while omitting the full complexity of GitFlow’s optional release and hotfix branches.
 
 ---
-# 4. Flow through environments
+
+## 6. Differences From Standard GitFlow
+
+Although inspired by GitFlow, this implementation contains notable customizations:
+
+### 6.1 No Dedicated Release Branches
+Traditional GitFlow uses temporary `release/*` branches. Here, the merge of `dev` into `main` functions as the release preparation step, and a **tag** denotes the finalized production build.
+
+### 6.2 Hotfix Behavior Is Implied, Not Formalized
+GitFlow defines explicit `hotfix/*` branches. In this model, hotfixes are tested in STAGE and integrated through standard feature branching rather than a distinct hotfix flow.
+
+### 6.3 CI/CD Pipelines Tied to Branches and Tags
+Unlike standard GitFlow, this process tightly couples:
+
+| Branch/Tag | Deployment Target |
+|------------|------------------|
+| Feature branch | DEV environment |
+| `dev` branch | CERT environment |
+| `main` branch | STAGE environment |
+| Tag on `main` | PROD environment |
+
+This mapping is highly opinionated and optimized for automated promotion.
 
 ---
-# 5. Release candidate and hot-fixes
+
+## 7. CI/CD Behavior in This Strategy
+
+The branching model aligns tightly with CI/CD automation:
+
+1. **Feature Development**
+   - Work happens on a Jira-specific branch from `dev`
+   - Commits undergo verification scans and deploy automatically to DEV
+
+2. **Certification**
+   - Feature branches merge into `dev` through PR review
+   - Merging triggers automated deployment of `dev` to CERT
+
+3. **Staging**
+   - Approved PRs from `dev` into `main` deploy mainline code to STAGE
+
+4. **Production**
+   - Creating a tag on `main` initiates a controlled deployment to PROD
+   - Tags act as immutable release artifacts and rollback points
+
+This process enables incremental approvals, gated promotion, and consistent release reproducibility.
 
 ---
-# 6. Summary
