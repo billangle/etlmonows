@@ -1,0 +1,80 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="FPAC CI/CD Architecture">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="dev" value="Developers" style="rounded=1;whiteSpace=wrap;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="120" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="bb" value="BitBucket Mono-Repo" style="rounded=1;whiteSpace=wrap;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="80" width="160" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="pipeline" value="BitBucket Pipelines" style="rounded=1;whiteSpace=wrap;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="80" width="160" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="jenkins" value="Jenkins (CERT/STAGE)" style="rounded=1;whiteSpace=wrap;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="80" width="180" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cdk" value="AWS CDK Deploy" style="rounded=1;whiteSpace=wrap;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="770" y="80" width="150" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="devEnv" value="DEV Environment&#10;(Feature Branch Deploys)" style="rounded=1;whiteSpace=wrap;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="220" width="200" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="certEnv" value="CERT Environment&#10;(dev Branch Deploys)" style="rounded=1;whiteSpace=wrap;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="220" width="200" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="stageEnv" value="STAGE Environment&#10;(main Branch Deploys)" style="rounded=1;whiteSpace=wrap;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="660" y="220" width="200" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="prodEnv" value="PROD Environment&#10;(Tag-Driven Releases)" style="rounded=1;whiteSpace=wrap;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="890" y="220" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="e1" edge="1" source="dev" target="bb" style="endArrow=classic;strokeWidth=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e2" edge="1" source="bb" target="pipeline" style="endArrow=classic;strokeWidth=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e3" edge="1" source="pipeline" target="jenkins" style="endArrow=classic;strokeWidth=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e4" edge="1" source="jenkins" target="cdk" style="endArrow=classic;strokeWidth=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e5" edge="1" source="cdk" target="devEnv" style="endArrow=classic;strokeWidth=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e6" edge="1" source="devEnv" target="certEnv" style="endArrow=classic;strokeWidth=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e7" edge="1" source="certEnv" target="stageEnv" style="endArrow=classic;strokeWidth=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e8" edge="1" source="stageEnv" target="prodEnv" style="endArrow=classic;strokeWidth=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

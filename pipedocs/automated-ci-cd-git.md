@@ -30,7 +30,7 @@ The data pipeline software will be migrated to a BitBucket mono-repo, which will
 
 ### 2.1.3 Future State Scheduling
 
-The schedule of data pipeline jobs is critical to the success of these data pipelines. There will be an application that will display and maintain the schedule. Changes made in this application will directly impect the scheduling software, whether that is Jenkins or other tools. The goal is that this scheduling applcation will have the ability to display what is going to run, what is running and what has run. Within this display, the user should be able to obtain the status and any relevant messages. The deployment of this applcation code, will follow the GIT branching and CI/CD process, defined in this document.
+The schedule of data pipeline jobs is critical to the success of these data pipelines. There will be an application that will display and maintain the schedule. Changes made in this application will directly impect the scheduling software, whether that is Jenkins or other tools. The goal is that this scheduling application will have the ability to display what is going to run, what is running and what has run. Within this display, the user should be able to obtain the status and any relevant messages. The deployment of this application code, will follow the GIT branching and CI/CD process, defined in this document.
 
 
 ## 2.2 CI/CD Process Automation
