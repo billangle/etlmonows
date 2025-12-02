@@ -22,7 +22,7 @@ The automated CI/CD pipeline process will implement a set of rules that enable t
 
 ### 2.1.1 Current State
 
-The data pipeline software is maintained in a series of BitBucket repositories. There are approximately thirty repositories used for mainatining the software used by FPAC. The data pipelines are scheduled and run as batch jobs from Jenkins. There are currently three Jenkins environments, development (DEV), certification (CERT) and production (PROD). The scheduling of the jobs is implemented by manually changing the schedule in Jeknins. The master schedule is maintained as a Confluence document. There is no release process for the changes to the schedule and currently the schedule is not part of source code control.
+The data pipeline software is maintained in a series of BitBucket repositories. There are approximately thirty repositories used for mainatining the software used by FPAC. The data pipelines are scheduled and run as batch jobs from Jenkins. There are currently three Jenkins environments, development (DEV), certification (CERT) and production (PROD). The scheduling of the jobs is implemented by manually changing the schedule in Jenkins. The master schedule is maintained as a Confluence document. There is no release process for the changes to the schedule and currently the schedule is not part of source code control.
 
 ### 2.1.2 Future State Code Repository
 
@@ -44,75 +44,82 @@ The CI/CD process automation has the following features:
 - Other steps are prepared via automation and automatically triggered
 - Manual triggering of a deployment, can be added to any step, as required
 
-# 3. GIT Branching and CI/CD automation
+# 3. GIT Branching and CI/CD Automation
 
-Automated CI/CD pipelines require the implementation of a well understood branching strategy. This enables rules to be triggered based on the merge, commit or tagging of a particular branch or style of branch. the automation will be impacted by the strict adherance to these branching rules.
+Automated CI/CD pipelines require the implementation of a well-understood branching strategy. Branch naming conventions and protected branch rules enable the automation system to execute deployment logic based on merges, commits, and tags.
 
-### 3.0.1 CERT and STAGE environments
+## 3.0.1 CERT and STAGE Environments
 
-During the transition from the manual process to the automated process, the STAGE environment will be the CERT environment for code that is moving through the automated process. Once the transition is complete, the STAGE environment will become the pre-production staging environment for a release. This means that some number of end-users will be able to preview the release in the STAGE environment. After a release the STAGE environment will become the place to test hot-fixes for a release, since CERT will likely have changes approved for the next release. In the final implementation - CERT will be deployed from the dev branch and STAGE will be deployed from the main branch. This is the most significant difference between these evironments. 
+During the transition period, the STAGE environment will serve temporarily as CERT for code moving through automated processes. After the transition:
 
-### 3.0.2 main branch release overview with tags
+- **CERT** is deployed from the `dev` branch
+- **STAGE** is deployed from the `main` branch
 
-The main branch should contain the release to production. This is includes a release target that is on STAGE. The release is deployed utilizing a GIT tag. The tagging process represents a series of pull requests (PRs), which have been pushed to main. The tag allows for a specific set of changes to be deployed to PROD. Futher, the tag provides a specific point that represents a release. This gives the team the ability to roll-back to a tag. The tagging process also allows active development on the next release even while the production tag is being certified.
+CERT represents the certified state of development for the next release, while STAGE provides a pre-production validation area. After a release, STAGE becomes the environment used for hotfix validation, as CERT moves forward with changes for the next version.
 
-### 3.0.3.1 branch protection
+## 3.0.2 main Branch Release Overview with Tags
 
-The main and dev branches are protected, which means that engineers cannot commit code directly to these branches. Changes must be made on feature branches, which are merged to protected branches via pull requests (PRs).
+The `main` branch contains production-ready code and acts as the release branch. Releases are deployed using Git tags that represent specific pull requests merged into `main`. Tags serve as immutable checkpoints, enabling rollback and supporting simultaneous development of future releases.
 
-### 3.0.3.2 branch protection exceptions
+## 3.0.3.1 Branch Protection
 
-The exception to branch protection is that the administrator can make commits directly to protected branches. These are done to:
+The `main` and `dev` branches are protected. Engineers cannot commit directly to either branch—changes must be introduced through feature branches and merged via pull requests.
 
-- Ensure that main and dev are the same immediately after a release to PROD
-- Correct conflicts that span multiple feature branches
-- Changes for automated pipeline definition and pipeline testing
+## 3.0.3.2 Branch Protection Exceptions
+
+Administrators may directly commit to protected branches for specific purposes:
+
+- Ensuring `main` and `dev` match immediately after a production release
+- Resolving complex merge conflicts across multiple feature branches
+- Updating automated pipeline definitions
+
 
 ## 3.1 dev branch process on DEV enironment
 
-The dev branch will contain the current state of development. It is a series of PRs (pull requests), from work done for features that are defined a Jira tickets. Each feature should be a branch from dev with the name of the Jira ticket. The dev environment will be a series of chnages related to commits made on these feature branches, directly correlated to Jira tickets. The CERT environment will have all of the approved PRs that have been merged into the dev branch. These actions will be automated via the CI/CD pipeline. 
+The `dev` branch will contain the current state of development. It is a series of PRs (pull requests), from work done for features that are defined a Jira tickets. Each feature should be a branch from `dev` with the name of the Jira ticket. The DEV environment will be a series of changes related to commits made on these feature branches, directly correlated to Jira tickets. The CERT environment will have all of the approved PRs that have been merged into the dev branch. These actions will be automated via the CI/CD pipeline. 
 
-- Jira ticket example called DDAA-2400
-- Create a branch called DDAA-2400 from the dev branch
-- Changes made to DDAA-2400 based on the Jira ticket
-- Commit changes to DDAA-2400
+- Jira ticket example called `DDAA-2400`
+- Create a branch called `DDAA-2400` from the `dev` branch
+- Changes made to `DDAA-2400` based on the Jira ticket
+- Commit changes to `DDAA-2400`
 - Updates are automatically pushed to DEV environment via CI/CD pipeline
 - All code quality and security scans must be passed for each commit, otherwise the deployment to the DEV environment will fail
 - It is at this point that any and all automated scans are run and these must be passed for every commit
 
 ## 3.2 dev branch process on CERT environment
 
-The process to promote work to the CERT environment. The feature branch will utilize a PR to merge changes to the dev branch. The PR process will involve a manual code review, to ensure that the code should be promoted to the CERT environment. Once the PR is approved, the CI/CD process will automatically deploy the updated dev branch to the CERT environment.
+The process to promote work to the CERT environment. The feature branch will utilize a PR to merge changes to the `dev` branch. The PR process will involve a manual code review, to ensure that the code should be promoted to the CERT environment. Once the PR is approved, the CI/CD process will automatically deploy the updated `dev` branch to the CERT environment.
 
-- Data Engineer or Lead creates a PR for DDAA-2400 to merge to dev
+- Data Engineer or Lead creates a PR for `DDAA-2400` to merge to `dev`
 - The PR is reviewed and any changes are resolved
 - Any merge conflicts must be corrected
-- The PR is approved and feature branch is merged to dev branch
+- The PR is approved and feature branch is merged to `dev` branch
 - The dev branch changes are automatically pushed to the CERT environment once the PR is approved
 - Automated scans are not run, to ensure that the PR is successfully merged
 - The changes are available for QA testing
-- The feature branch DDAA-2400 is deleted after the successful merge
-- Changes based on QA testing should be done on a new feature branch - starting the process back to section 2.3.2
+- The feature branch `DDAA-2400` is deleted after the successful merge
+- Changes based on QA testing should be done on a new feature branch - starting the process back to section 3.1
 
 ## 3.3 dev branch to main deployed to STAGE environment
 
-Based on criteria external to this process, a PR will be created to merge the current state of dev to main. The STAGE environment will always contain the most current stage of the main branch.
+Based on criteria external to this process, a PR will be created to merge the current state of dev to main. The STAGE environment will always contain the most current state of the main branch.
 
-- Once the PR from dev to main is approved, the updated main branch is automatically deployed to STAGE
-- The CI/CD deployment automation is trigged by the PR from dev to main
+- Once the PR from dev to `main` is approved, the updated `main` branch is automatically deployed to STAGE
+- The CI/CD deployment automation is trigged by the PR from `dev` to `main`
 - User testing can cause changes to flow back through the process, so that multiple release candidates can exist
 
 ## 3.4 main branch deployed to PROD environment
 
-The process to deploy a release to the PROD environment utilizes a tag. A tag is created on the main branch, for the final commit that represents a release candidate. This tag name should follow a common release naming convetion. FPAC appears to be using a date-based versioning solution, so the tag should have the convention [PI]YYYY.MM.PROD[-N], where -N is the incremental number of the next tag for this year and month combination, starting with 1. The created tag will automatically start the process to for a deployment to production. However, it is not completely automatic. The creator of the tag will need to login to to the production Jekins server to run the job, that was created. 
+The process to deploy a release to the PROD environment utilizes a tag. A tag is created on the `main` branch, for the final commit that represents a release candidate. This tag name should follow a common release naming convetion. FPAC appears to be using a date-based versioning solution, so the tag should have the convention [PI]YYYY.MM.PROD[-N], where -N is the incremental number of the next tag for this year and month combination, starting with 1. The created tag will automatically start the process to for a deployment to production. However, it is not completely automatic. The creator of the tag will need to login to to the production Jekins server to run the job, that is created. 
 
-- Tag is created on the main branch
-- *EXAMPLE: deployed to PROD for 2026 in January would be tagged as PI2026.01.PROD.01*
-- The PROD tags trigger automation, but the the process must be completed on the Jenkins server
+- Tag is created on the `main` branch
+- *EXAMPLE: The first release deployed to PROD for 2026 in January would be tagged as `PI2026.01.PROD.01`*
+- The PROD tag creation will trigger automation - a job is created on the production Jenkins server
+- The deployment process must be manually completed on the Jenkins server
 - Each PROD tag is a release to the PROD environment
 
 
-## 4. Summary: Branching Strategy Identification
+## 4. Summary: Branching Strategy Overview
 
 This documentation describes a **GitFlow-inspired branching model** adapted to support automated CI/CD pipelines and environment-based deployments. While it does not implement the full canonical GitFlow process, it utilizes GitFlow’s core branching concepts and enhances them with environment-driven promotion rules and tag-based production releases.
 
