@@ -110,7 +110,7 @@ Based on criteria external to this process, a PR will be created to merge the cu
 
 ## 3.4 `main` branch deployed to PROD environment
 
-The process to deploy a release to the PROD environment utilizes a tag. A tag is created on the `main` branch, for the final commit that represents a release candidate. This tag name should follow a common release naming convetion. FPAC appears to be using a date-based versioning solution, so the tag should have the convention [PI]YYYY.MM.PROD[-N], where -N is the incremental number of the next tag for this year and month combination, starting with 1. The created tag will automatically start the process to for a deployment to production. However, it is not completely automatic. The creator of the tag will need to login to to the production Jekins server to run the job, that is created. 
+The process to deploy a release to the PROD environment utilizes a tag. A tag is created on the `main` branch, for the final commit that represents a release candidate. This tag name should follow a common release naming convention. FPAC appears to be using a date-based versioning solution, so the tag should have the convention [PI]YYYY.MM.PROD[-N], where -N is the incremental number of the next tag for this year and month combination, starting with 1. The created tag will automatically start the process to for a deployment to production. However, it is not completely automatic. The creator of the tag will need to login to to the production Jekins server to run the job, that is created. 
 
 - Tag is created on the `main` branch
 - *EXAMPLE: The first release deployed to PROD for 2026 in January would be tagged as `PI2026.01.PROD.01`*
