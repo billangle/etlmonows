@@ -1,0 +1,90 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudFormationLimited",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:DescribeStackResource",
+        "cloudformation:DescribeStackResources",
+        "cloudformation:ListStacks",
+        "cloudformation:ListStackResources",
+        "cloudformation:GetTemplate",
+        "cloudformation:ValidateTemplate",
+        "cloudformation:TagResource",
+        "cloudformation:UntagResource"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowLimitedIAMRoleManagementForCDK",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:UpdateRole",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::*:role/Fpac*"
+    },
+    {
+      "Sid": "AllowIAMRoleManagementLimited",
+      "Effect": "Allow",
+      "Action": [
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:GetRole",
+        "iam:PassRole",
+        "iam:ListRoles",
+        "iam:GetRolePolicy",
+        "iam:ListRolePolicies"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowAWSServices",
+      "Effect": "Allow",
+      "Action": [
+        "tag:*",
+        "ssm:*",
+        "sts:*",
+        "s3:*",
+        "lambda:*",
+        "states:*",
+        "glue:*",
+        "dms:*",
+        "logs:*",
+        "dynamodb:*",
+        "athena:*",
+        "sns:*",
+        "kms:*",
+        "sqs:*",
+        "dsql:*",
+        "rds:*",
+        "rds-data:*",
+        "secretsmanager:*",
+        "redshift:*",
+        "redshift-serverless:*",
+        "redshift-data:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowReadOnlyEC2Networking",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeSubnets",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeRouteTables"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
