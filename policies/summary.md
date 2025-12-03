@@ -1,6 +1,6 @@
-# FPAC CI/CD Architecture – Summary
+# FPAC CI/CD Architecture 
 
-This document provides a five-slide executive summary of the FPAC CI/CD automation architecture, based entirely on AWS CDK, least-privilege IAM, and automated deployment pipelines.
+This document provides an executive summary of the FPAC CI/CD automation architecture, based entirely on AWS CDK, least-privilege IAM, and automated deployment pipelines.
 
 ---
 
@@ -38,7 +38,7 @@ Legacy deployments rely heavily on manual steps, resulting in:
 #### **1. Deployer IAM User**
 - Used only by Jenkins/CI pipelines.
 - Can synthesize CDK and interact with CloudFormation.
-- Can pass the CDK-EXECUTOR Policy.
+- Using the CDK-EXECUTOR Policy via the CDK bootstrap.
 - **Cannot directly modify AWS resources.**
 
 #### **2. CDK-EXECUTOR Policy**
@@ -66,7 +66,7 @@ Legacy deployments rely heavily on manual steps, resulting in:
   3. **AWS CDK → CloudFormation**
 
 ### **Transition Approach**
-1. Rebuild ~30 existing pipelines as CDK applications.
+1. Rebuild ~30 existing data pipelines as CDK applications.
 2. Move all solutions into a dedicated **Bitbucket mono-repo**.
 3. Implement Jenkins pipelines for:
    - DEV deployments  
