@@ -70,7 +70,6 @@
         "rds-data:*",
         "secretsmanager:*",
         "redshift:*",
-        "redshift-serverless:*",
         "redshift-data:*"
       ],
       "Resource": "*"
