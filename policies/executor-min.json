@@ -34,9 +34,9 @@
       "Resource": "arn:aws:iam::*:role/Fpac*"
     },
     {
-      "Sid": "AllowIAMRoleManagementLimited",
-      "Effect": "Allow",
-      "Action": [
+    "Sid": "AllowIAMRoleManagementLimited",
+    "Effect": "Allow",
+    "Action": [
         "iam:AttachRolePolicy",
         "iam:DetachRolePolicy",
         "iam:GetRole",
@@ -44,8 +44,11 @@
         "iam:ListRoles",
         "iam:GetRolePolicy",
         "iam:ListRolePolicies"
-      ],
-      "Resource": "*"
+    ],
+    "Resource": [
+        "arn:aws:iam::*:role/FPAC*",
+        "arn:aws:iam::*:role/Fpac*"
+    ]
     },
     {
       "Sid": "AllowAWSServices",
