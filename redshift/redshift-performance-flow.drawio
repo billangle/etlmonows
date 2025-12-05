@@ -1,0 +1,59 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36" version="29.2.2">
+  <diagram id="redshift_perf" name="Redshift Performance Flow">
+    <mxGraphModel dx="1135" dy="1078" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="start" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf" value="CPU Spike Detected" vertex="1">
+          <mxGeometry height="60" width="180" x="120" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="cw" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" value="1. Check CloudWatch Metrics&#xa;- CPUUtilization&#xa;- WLMQueueLength" vertex="1">
+          <mxGeometry height="80" width="260" x="80" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="queries" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366" value="2. Identify Top Query&#xa;Redshift Console &gt; Queries" vertex="1">
+          <mxGeometry height="70" width="260" x="80" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="pi" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffdede;strokeColor=#b85450" value="3. Use Performance Insights&#xa;- Top SQL by load&#xa;- CPU / waits breakdown" vertex="1">
+          <mxGeometry height="90" width="280" x="70" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="sql" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6" value="4. Deep Dive via SQL&#xa;SVL_QLOG, STV_RECENTS, EXPLAIN" vertex="1">
+          <mxGeometry height="80" width="280" x="70" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="eval" parent="1" style="shape=rhombus;perimeter=rhombusPerimeter;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00" value="Is Query Over Threshold&#xa;(duration/CPU)?" vertex="1">
+          <mxGeometry height="100" width="180" x="430" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="kill" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#cc0000" value="5a. Terminate Query&#xa;- QMR ABORT rule&#xa;- Manual CANCEL if needed" vertex="1">
+          <mxGeometry height="90" width="260" x="720" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="tune" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366" value="5b. Tune &amp; Prevent&#xa;- Optimize SQL&#xa;- Dist/Sort keys&#xa;- VACUUM / ANALYZE&#xa;- Adjust WLM/QMR" vertex="1">
+          <mxGeometry height="110" width="260" x="720" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" style="endArrow=classic;strokeColor=#000000" target="cw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="cw" style="endArrow=classic;strokeColor=#000000" target="queries">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="queries" style="endArrow=classic;strokeColor=#000000" target="pi">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="pi" style="endArrow=classic;strokeColor=#000000" target="sql">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="sql" style="endArrow=classic;strokeColor=#000000" target="eval">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="eval" style="endArrow=classic;strokeColor=#000000" target="kill">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="640" y="530" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="eval" style="endArrow=classic;strokeColor=#000000" target="tune">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="640" y="620" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
