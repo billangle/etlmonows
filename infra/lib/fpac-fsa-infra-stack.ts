@@ -73,7 +73,7 @@ export class FpacFsaInfraStack extends cdk.Stack {
     });
 
 // IAM Role for Glue Jobs
-
+/*
     const glueJobRole = new iam.Role(this, `FpacFsaStackGlueJobRole-${props.deployEnv}`, {
       assumedBy: new iam.ServicePrincipal('glue.amazonaws.com'),
       managedPolicies: [
@@ -92,9 +92,9 @@ export class FpacFsaInfraStack extends cdk.Stack {
       resources: ['*']
         }));
 
-
+*/
      const glueRoleARNStr = `arn:aws:iam::${cdk.Stack.of(this).account}:role/${props.configData.glueRoleName}`;
-     const glueJobRole2 = iam.Role.fromRoleArn(this, 'GlueJobRoleFromARN', glueRoleARNStr, { mutable: false });
+     const glueJobRole = iam.Role.fromRoleArn(this, 'GlueJobRoleFromARN', glueRoleARNStr, { mutable: false });
 
 
 
@@ -104,7 +104,7 @@ export class FpacFsaInfraStack extends cdk.Stack {
     cleanBucket.grantReadWrite(glueJobRole);
     finalBucket.grantReadWrite(glueJobRole);
 
-    
+    /*
     const fpacFsaLambdaExecutionRole = new iam.Role(this, `FpacFsaLambdaExecutionRole-${props.deployEnv}`, {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       managedPolicies: [
@@ -123,10 +123,10 @@ export class FpacFsaInfraStack extends cdk.Stack {
       ],
       resources: ['*']
     }));
-
+*/
 
     const lambdaRoleARNStr = `arn:aws:iam::${cdk.Stack.of(this).account}:role/${props.configData.lambdaRoleName}`;
-    const fpacFsaLambdaExecutionRole2 = iam.Role.fromRoleArn(this, 'FpacFsaLambdaExecutionRoleFromARN', lambdaRoleARNStr, { mutable: false });
+    const fpacFsaLambdaExecutionRole = iam.Role.fromRoleArn(this, 'FpacFsaLambdaExecutionRoleFromARN', lambdaRoleARNStr, { mutable: false });
     
 
     // ===== Glue Data Catalog (Database) – L1 =====
@@ -145,12 +145,13 @@ export class FpacFsaInfraStack extends cdk.Stack {
       stringValue: glueRoleARN
    });
 
+   /*
      const glueRoleARN2 = glueJobRole2.roleArn;
     const ssmEtlGlueJobRole2 = new StringParameter (this, `fpacFsaGlueJobRoleSSM-${props.deployEnv}2`, {
       parameterName: 'fpacFsaGlueJobRoleSSMArn2',
       stringValue: glueRoleARN2
    });
-
+*/
 
    const landingBucketName = landingBucket.bucketName
     const ssmInputBucketARN = new StringParameter (this, `fpacFsaInputBucketSSM-${props.deployEnv}`, {
@@ -182,12 +183,13 @@ export class FpacFsaInfraStack extends cdk.Stack {
     stringValue: fpacFsaLambdaExecutionRoleARN
   });
 
+  /*
    const fpacFsaLambdaExecutionRoleARN2 = fpacFsaLambdaExecutionRole.roleArn;
   const ssmEtlRoleARN2 = new StringParameter(this, `fpacFsaLambdaExecuteRoleARN-${props.deployEnv}2`, {
     parameterName: 'fpacFsaLambdaExecuteRoleARN2',
     stringValue: fpacFsaLambdaExecutionRoleARN2
   });
-
+*/
 
   const fpacfsaThirdPartyLayerArn = thirdPartyLayer.layerVersionArn;
   const ssmThirdPartyLayerArn = new StringParameter(this, `fpacfsaThirdPartyLayerArn-${props.deployEnv}`, {
