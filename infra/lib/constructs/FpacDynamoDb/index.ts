@@ -7,6 +7,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
   interface Props {
      tablename: string;
      key: string;
+     sortKey: string;
   }
 
 
@@ -20,6 +21,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
   
      this.table = new dynamodb.Table(this, `${props.tablename}`, {
         partitionKey: { name: props.key, type: dynamodb.AttributeType.STRING },
+        sortKey:  { name: props.sortKey, type: dynamodb.AttributeType.STRING },
         tableName: props.tablename,
         removalPolicy: cdk.RemovalPolicy.DESTROY,
         deletionProtection: false,

@@ -7,8 +7,10 @@ import {
 	marshall,
 	unmarshall
 } from "@aws-sdk/util-dynamodb";
+import { Utils } from "/opt/nodejs/Utils.mjs";
 
 const ddb = new DynamoDBClient();
+const utils = new Utils();
 
 export const handler = async (event) => {
   // Accept either { jobDetails, timestamp } payload or the raw logged structure

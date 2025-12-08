@@ -72,6 +72,8 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
     const thirdPartyLayerArn = StringParameter.valueForStringParameter(this, 'fpacfsaThirdPartyLayerArn');
     const thirdPartyLayer = lambda.LayerVersion.fromLayerVersionArn(this, 'ThirdPartyLayer', thirdPartyLayerArn);
 
+    const customLayerArn = StringParameter.valueForStringParameter(this, 'fpacfsaCustomLayerArn');
+    const customLayer = lambda.LayerVersion.fromLayerVersionArn(this, 'CustomLayer', customLayerArn);
 
     // ===== Glue ETL Jobs =====
 
@@ -127,7 +129,7 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
         PROJECT: props.project,
         TABLE_NAME: props.configData.dynamoTableName,
       },
-      layers: [thirdPartyLayer],
+      layers: [thirdPartyLayer, customLayer],
     });
 
     // ===== Glue Data Catalog (Database) – L1 =====

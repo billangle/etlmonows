@@ -63,6 +63,17 @@ export class FpacFsaInfraStack extends cdk.Stack {
       description: 'FPAC Thirdparty CDK Lambda Layer',
     });
 
+    const customLayer = new lambda.LayerVersion(this, 'fpac-cdk-custom-layer', {
+      compatibleRuntimes: [
+        lambda.Runtime.NODEJS_22_X,
+        lambda.Runtime.NODEJS_LATEST,
+      ],
+      code: new AssetCode(`../shared/layer/fpacfsa/custom`),
+      layerVersionName: "fpac-cdk-custom-layer-ssm",
+      description: 'FPAC Custom CDK Lambda Layer',
+    });
+
+
   
 
   // DynamoDB Table for tracking ETL job metadata and status
@@ -70,6 +81,7 @@ export class FpacFsaInfraStack extends cdk.Stack {
     const etlJobsTable = new FpacDynamoDb(this, `FpacFsaEtlJobsTable-${props.deployEnv}`, {
       tablename: props.configData.dynamoTableName,
       key: 'jobId',
+      sortKey : 'project',
     });
 
 // IAM Role for Glue Jobs
@@ -195,6 +207,12 @@ export class FpacFsaInfraStack extends cdk.Stack {
   const ssmThirdPartyLayerArn = new StringParameter(this, `fpacfsaThirdPartyLayerArn-${props.deployEnv}`, {
     parameterName: 'fpacfsaThirdPartyLayerArn',
     stringValue: fpacfsaThirdPartyLayerArn
+  });
+
+  const fpacfsaCustomLayerArn = customLayer.layerVersionArn;
+  const ssmCustomLayerArn = new StringParameter(this, `fpacfsaCustomLayerArn-${props.deployEnv}`, {
+    parameterName: 'fpacfsaCustomLayerArn',
+    stringValue: fpacfsaCustomLayerArn
   });
  
     // Outputs
