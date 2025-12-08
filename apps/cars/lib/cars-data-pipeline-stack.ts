@@ -204,6 +204,12 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
       outputPath: '$.Payload',
     });
 
+  
+    const createIdTask = new tasks.LambdaInvoke(this, `${projectName}-CreateNewId`, {
+      lambdaFunction: step1CreateNewId.lambdaFunction,
+      outputPath: '$.Payload',
+    });
+
    
 
     // Start crawler (does not wait for completion)
@@ -229,6 +235,7 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
 
 
       const definition = validateTask
+        .next (createIdTask)
         .next(step1GlueJob.task)
         .next(step2GlueJob.task)
         .next(step3GlueJob.task)
