@@ -1,0 +1,57 @@
+{
+    "ok": true,
+    "jobId": "78721890-e337-4849-a9a7-90995145533c",
+    "glueResult": {
+        "AllocatedCapacity": 2,
+        "Arguments": {
+            "--landing_bucket": "punkdev-fpacfsa-landing-zone",
+            "--project": "cars",
+            "--clean_bucket": "punkdev-fpacfsa-cleansed-zone",
+            "--final_bucket": "punkdev-fpacfsa-final-zone"
+        },
+        "Attempt": 0,
+        "CompletedOn": 1765294355422,
+        "ExecutionTime": 106,
+        "GlueVersion": "4.0",
+        "Id": "jr_ab68c9da6e65ecf1a1d3c45162cfcfa729ad2061f908224f35ad0f38fa31be3f",
+        "JobMode": "SCRIPT",
+        "JobName": "FSA-punkdev-FpacCARS",
+        "JobRunState": "SUCCEEDED",
+        "LastModifiedOn": 1765294355422,
+        "LogGroupName": "/aws-glue/jobs",
+        "MaxCapacity": 2,
+        "NumberOfWorkers": 2,
+        "PredecessorRuns": [],
+        "StartedOn": 1765294241658,
+        "Timeout": 30,
+        "WorkerType": "G.1X"
+    },
+    "logged": {
+        "jobDetails": {
+            "AllocatedCapacity": 2,
+            "Arguments": {
+                "--landing_bucket": "punkdev-fpacfsa-landing-zone",
+                "--project": "cars",
+                "--clean_bucket": "punkdev-fpacfsa-cleansed-zone",
+                "--final_bucket": "punkdev-fpacfsa-final-zone"
+            },
+            "Attempt": 0,
+            "CompletedOn": 1765294355422,
+            "ExecutionTime": 106,
+            "GlueVersion": "4.0",
+            "Id": "jr_ab68c9da6e65ecf1a1d3c45162cfcfa729ad2061f908224f35ad0f38fa31be3f",
+            "JobMode": "SCRIPT",
+            "JobName": "FSA-punkdev-FpacCARS",
+            "JobRunState": "SUCCEEDED",
+            "LastModifiedOn": 1765294355422,
+            "LogGroupName": "/aws-glue/jobs",
+            "MaxCapacity": 2,
+            "NumberOfWorkers": 2,
+            "PredecessorRuns": [],
+            "StartedOn": 1765294241658,
+            "Timeout": 30,
+            "WorkerType": "G.1X"
+        },
+        "timestamp": "2025-12-09T15:32:45.018Z"
+    }
+}

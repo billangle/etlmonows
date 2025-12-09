@@ -132,6 +132,18 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
       layers: [thirdPartyLayer, customLayer],
     });
 
+
+    const finalLogResults = new FpacLambda (this, `${projectName}-FinalLogResultsLambda`, {
+      functionName: `FSA-${props.deployEnv}-${projectName}-LogResults`,
+      functionCode: `${lambdaRootPath}LogResults`,
+      role: etlLambdaRole,
+      environment: {
+        PROJECT: props.project,
+        TABLE_NAME: props.configData.dynamoTableName,
+      },
+      layers: [thirdPartyLayer, customLayer],
+    });
+
     // ===== Glue Data Catalog (Database) – L1 =====
     
     class ExistingGlueDatabase extends Construct {
@@ -210,6 +222,11 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
       outputPath: '$.Payload',
     });
 
+    const logResultsTask = new tasks.LambdaInvoke(this, `${projectName}-LogResults`, {
+      lambdaFunction: finalLogResults.lambdaFunction,
+      outputPath: '$.Payload',
+    });
+
    
 
     // Start crawler (does not wait for completion)
@@ -240,6 +257,7 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
         .next(step2GlueJob.task)
         .next(step3GlueJob.task)
         .next(logGlueResults)
+        .next(logResultsTask)
         .next(startCrawler)
         .next(new sfn.Choice(this, 'Was Glue successful?')
           .when(sfn.Condition.stringEquals('$.logged.jobDetails.JobRunState', 'SUCCEEDED'), success)

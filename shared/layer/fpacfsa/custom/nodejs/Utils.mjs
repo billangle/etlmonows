@@ -130,27 +130,27 @@ export class Utils {
 
 
 
-    async updateReportRow (uuid, ReportType, reportName, status) {
+    async updatePipelineStatus (jobId, tablename, response, project, jobstate) {
         let commandR;
         try {
         
             commandR = new UpdateCommand({
-                TableName: "APIReportEvents",
+                TableName: tablename,
                 Key: {
-                  UUID: uuid,
-                  ReportType: ReportType
+                  jobId: jobId,
+                  project: project
                 },
-                UpdateExpression: "set OutputFileName = :file, MyStatus = :status",
+                UpdateExpression: "set jobState = :jobstate, fullResponse = :response",
                 ExpressionAttributeValues: {
-                  ":file": reportName,
-                  ":status": status
+                  ":response": response,
+                  ":jobstate": jobstate
                 },
                 ReturnValues: "ALL_NEW",
               });
             
              let res = await docClient.send(commandR);
         } catch (e) {
-            console.error("Error updating row: " + uuid + " : " + JSON.stringify(commandR) + " e: " + e);
+            console.error("Error updating row: " + jobId + " : " + JSON.stringify(commandR) + " e: " + e);
         }
         
 

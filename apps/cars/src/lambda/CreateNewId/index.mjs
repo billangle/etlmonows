@@ -28,7 +28,7 @@ export const handler = async (event) => {
   }
   const item = {
     jobId: jobId,
-    jobState: jobDetails.JobRunState || jobDetails.jobRunState || null,
+    jobState: "IN_PROGRESS", 
     timestamp: timestamp,
     project: project,
     fullResponse: jobDetails,
