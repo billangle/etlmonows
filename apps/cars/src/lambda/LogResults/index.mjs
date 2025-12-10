@@ -6,8 +6,11 @@ const utils = new Utils();
 
 export const handler = async (event) => {
   // Accept either { jobDetails, timestamp } payload or the raw logged structure
+  //const jobDetails = event.logged.jobDetails;
+  //const jobId = event.jobId;
+
   const jobDetails = event.logged.jobDetails;
-  const jobId = event.jobId;
+  const jobId = event.step1Result.Output.jobId;
    //const jobId = '';
   const tableName = process.env.TABLE_NAME;
   const project = process.env.PROJECT;

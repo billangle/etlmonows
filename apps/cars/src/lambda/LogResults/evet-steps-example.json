@@ -1,0 +1,102 @@
+{
+    "step1Result": {
+        "ExecutionArn": "arn:aws:states:us-east-1:335965711887:execution:FSA-punkdev-FpacCARS-PipelineStep1:d93ad478-f026-4ca8-a9c3-3f6d05a55d07",
+        "Input": {},
+        "InputDetails": {
+            "Included": true
+        },
+        "Name": "d93ad478-f026-4ca8-a9c3-3f6d05a55d07",
+        "Output": {
+            "ok": true,
+            "jobId": "3414bc02-d82a-411f-b18e-0df5edcb325c",
+            "glueResult": {
+                "AllocatedCapacity": 2,
+                "Arguments": {
+                    "--landing_bucket": "punkdev-fpacfsa-landing-zone",
+                    "--project": "cars",
+                    "--clean_bucket": "punkdev-fpacfsa-cleansed-zone",
+                    "--final_bucket": "punkdev-fpacfsa-final-zone"
+                },
+                "Attempt": 0,
+                "CompletedOn": 1765380333328,
+                "ExecutionTime": 86,
+                "GlueVersion": "4.0",
+                "Id": "jr_9ae7233551a4f0dc559bf0c8032744a87291d7c728f2001db8871a70f97cf0ba",
+                "JobMode": "SCRIPT",
+                "JobName": "FSA-punkdev-FpacCARS-LandingFiles",
+                "JobRunState": "SUCCEEDED",
+                "LastModifiedOn": 1765380333328,
+                "LogGroupName": "/aws-glue/jobs",
+                "MaxCapacity": 2,
+                "NumberOfWorkers": 2,
+                "PredecessorRuns": [],
+                "StartedOn": 1765380240113,
+                "Timeout": 30,
+                "WorkerType": "G.1X"
+            }
+        },
+        "OutputDetails": {
+            "Included": true
+        },
+        "RedriveCount": 0,
+        "RedriveStatus": "NOT_REDRIVABLE",
+        "RedriveStatusReason": "Execution is SUCCEEDED and cannot be redriven",
+        "StartDate": 1765380236978,
+        "StateMachineArn": "arn:aws:states:us-east-1:335965711887:stateMachine:FSA-punkdev-FpacCARS-PipelineStep1",
+        "Status": "SUCCEEDED",
+        "StopDate": 1765380362522
+    },
+    "glueResult": {
+        "AllocatedCapacity": 2,
+        "Arguments": {
+            "--landing_bucket": "punkdev-fpacfsa-landing-zone",
+            "--project": "cars",
+            "--clean_bucket": "punkdev-fpacfsa-cleansed-zone",
+            "--final_bucket": "punkdev-fpacfsa-final-zone"
+        },
+        "Attempt": 0,
+        "CompletedOn": 1765380477512,
+        "ExecutionTime": 44,
+        "GlueVersion": "4.0",
+        "Id": "jr_70783692c374cd6bd79328f600b0b3ff5b2e2dd544eb3d3bf52fbaeafb0d2a2a",
+        "JobMode": "SCRIPT",
+        "JobName": "FSA-punkdev-FpacCARS",
+        "JobRunState": "SUCCEEDED",
+        "LastModifiedOn": 1765380477512,
+        "LogGroupName": "/aws-glue/jobs",
+        "MaxCapacity": 2,
+        "NumberOfWorkers": 2,
+        "PredecessorRuns": [],
+        "StartedOn": 1765380429772,
+        "Timeout": 30,
+        "WorkerType": "G.1X"
+    },
+    "logged": {
+        "jobDetails": {
+            "AllocatedCapacity": 2,
+            "Arguments": {
+                "--landing_bucket": "punkdev-fpacfsa-landing-zone",
+                "--project": "cars",
+                "--clean_bucket": "punkdev-fpacfsa-cleansed-zone",
+                "--final_bucket": "punkdev-fpacfsa-final-zone"
+            },
+            "Attempt": 0,
+            "CompletedOn": 1765380477512,
+            "ExecutionTime": 44,
+            "GlueVersion": "4.0",
+            "Id": "jr_70783692c374cd6bd79328f600b0b3ff5b2e2dd544eb3d3bf52fbaeafb0d2a2a",
+            "JobMode": "SCRIPT",
+            "JobName": "FSA-punkdev-FpacCARS",
+            "JobRunState": "SUCCEEDED",
+            "LastModifiedOn": 1765380477512,
+            "LogGroupName": "/aws-glue/jobs",
+            "MaxCapacity": 2,
+            "NumberOfWorkers": 2,
+            "PredecessorRuns": [],
+            "StartedOn": 1765380429772,
+            "Timeout": 30,
+            "WorkerType": "G.1X"
+        },
+        "timestamp": "2025-12-10T15:28:15.984Z"
+    }
+}

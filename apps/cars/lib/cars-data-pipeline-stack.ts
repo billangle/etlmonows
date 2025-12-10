@@ -233,6 +233,7 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
     });
 
 
+/*
       const definition = validateLambdaTask.task
         .next (step1CreateNewIdTask.task)
         .next(step1GlueJob.task)
@@ -244,11 +245,9 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
         .next(new sfn.Choice(this, 'Was Glue successful?')
           .when(sfn.Condition.stringEquals('$.logged.jobDetails.JobRunState', 'SUCCEEDED'), success)
           .otherwise(fail));
-     
 
 
-
-    const stateMachine = new sfn.StateMachine(this, `${projectName}-PipelineStateMachine`, {
+        const stateMachine = new sfn.StateMachine(this, `${projectName}-PipelineStateMachine`, {
       stateMachineName: `FSA-${props.deployEnv}-${projectName}-Pipeline`,
       definitionBody: sfn.DefinitionBody.fromChainable(definition),
       logs: {
@@ -259,7 +258,77 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
       },
       tracingEnabled: true,
     });
+          */
 
+      
+   const definitionStep1 = validateLambdaTask.task
+      .next(step1CreateNewIdTask.task)
+      .next(step1GlueJob.task);
+
+    const stateMachine1 = new sfn.StateMachine(this, `${projectName}-PipelineStateMachineStep1`, {
+      stateMachineName: `FSA-${props.deployEnv}-${projectName}-PipelineStep1`,
+      definitionBody: sfn.DefinitionBody.fromChainable(definitionStep1),
+      logs: {
+        destination: new logs.LogGroup(this, 'StateMachineLogsStep1', {
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+        }),
+        level: sfn.LogLevel.ALL,
+      },
+      tracingEnabled: true,
+    });
+
+    // --- Child #2 definition ---
+    const definitionStep2 = step2GlueJob.task
+      .next(step3GlueJob.task)
+      .next(logGlueResults)
+      .next(finalLogResultsTask.task)
+      .next(startCrawler)
+      .next(new sfn.Choice(this, 'Was Glue successful?')
+        .when(
+          sfn.Condition.stringEquals('$.logged.jobDetails.JobRunState', 'SUCCEEDED'),
+          success,
+        )
+        .otherwise(fail));
+
+    const stateMachine2 = new sfn.StateMachine(this, `${projectName}-PipelineStateMachineStep2`, {
+      stateMachineName: `FSA-${props.deployEnv}-${projectName}-PipelineStep2`,
+      definitionBody: sfn.DefinitionBody.fromChainable(definitionStep2),
+      logs: {
+        destination: new logs.LogGroup(this, 'StateMachineLogsStep2', {
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+        }),
+        level: sfn.LogLevel.ALL,
+      },
+      tracingEnabled: true,
+    });
+
+    // --- Parent State Machine that runs Step1 then Step2 ---
+
+    const runStep1 = new tasks.StepFunctionsStartExecution(this, 'Run Step1', {
+      stateMachine: stateMachine1,
+      integrationPattern: sfn.IntegrationPattern.RUN_JOB, // wait for completion
+      resultPath: '$.step1Result',
+    });
+
+    const runStep2 = new tasks.StepFunctionsStartExecution(this, 'Run Step2', {
+      stateMachine: stateMachine2,
+      integrationPattern: sfn.IntegrationPattern.RUN_JOB, // wait for completion
+      resultPath: '$.step2Result',
+    });
+
+    const parentDefinition = runStep1.next(runStep2);
+
+    const stateMachine = new sfn.StateMachine(this, `${projectName}-PipelineStateMachine`, {
+      stateMachineName: `FSA-${props.deployEnv}-${projectName}-Pipeline`,
+      definitionBody: sfn.DefinitionBody.fromChainable(parentDefinition),
+      logs: {
+        destination: new logs.LogGroup(this, 'StateMachineLogs', {
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+        }),
+        level: sfn.LogLevel.ALL,
+      },
+      tracingEnabled: true,
+    });
 
     new cdk.CfnOutput(this, `${projectName}StateMachineArn`, { value: stateMachine.stateMachineArn });
 
