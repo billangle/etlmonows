@@ -37,7 +37,7 @@ export class FpacLambdaTask extends Construct {
         })
 
 
-     this.task = new tasks.LambdaInvoke(this, `${props.projectName}-LogResults`, {
+     this.task = new tasks.LambdaInvoke(this, `TASK-${props.functionName}`, {
       lambdaFunction: this.lambdaFunction,
       outputPath: props.outputPath,
     });

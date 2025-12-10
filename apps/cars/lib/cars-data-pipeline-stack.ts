@@ -120,9 +120,9 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
       project: props.project,
     });
 
-    // ==== Lambda to create UUID id for step 1 ====
+    // ==== Lambda Functions as Step Functions Tasks =====
 
-    const step1CreateNewId = new FpacLambda (this, `${projectName}-Step1Lambda`, {
+    const step1CreateNewIdTask = new FpacLambdaTask (this, `${projectName}-Step1Lambda`, {
       functionName: `FSA-${props.deployEnv}-${projectName}-CreateNewId`,
       functionCode: `${lambdaRootPath}CreateNewId`,
       role: etlLambdaRole,
@@ -131,6 +131,8 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
         TABLE_NAME: props.configData.dynamoTableName,
       },
       layers: [thirdPartyLayer, customLayer],
+      projectName: projectName,
+      outputPath: '$.Payload',
     });
 
 
@@ -146,6 +148,24 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
       projectName: projectName,
       outputPath: '$.Payload',
     });
+
+
+    const validateLambdaTask = new FpacLambdaTask (this, `${projectName}-ValidateInputLambda`, {
+      functionName: `FSA-${props.deployEnv}-${projectName}-ValidateInput`,
+      functionCode: `${lambdaRootPath}Validate`,
+      role: etlLambdaRole,
+      environment: {
+        PROJECT: props.project,
+        TABLE_NAME: props.configData.dynamoTableName,
+      },
+      layers: [thirdPartyLayer, customLayer],
+      projectName: projectName,
+      outputPath: '$.Payload',
+    });
+
+    landingBucket.grantRead(validateLambdaTask.lambdaFunction);
+
+
 
     // ===== Glue Data Catalog (Database) – L1 =====
     
@@ -202,28 +222,10 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
     crawlerTrigger.addDependency(step3GlueJob.trigger);
     crawlerTrigger.addDependency(crawler);
 
-    // ===== Validator Lambda =====
-    const validatorFn = new lambda.Function(this, `${projectName}-ValidatorFn`, {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      functionName: `FSA-${props.deployEnv}-${projectName}-Validator`,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(`${lambdaRootPath}Validate`),
-      environment: { LANDING_BUCKET: landingBucket.bucketName, PROJECT: props.project },
-      role: etlLambdaRole,
-    });
-    landingBucket.grantRead(validatorFn);
-
-    // ===== Step Functions: Validate → Run ETL → Start Crawler → Success/Fail =====
-    const validateTask = new tasks.LambdaInvoke(this, `${projectName}-ValidateInput`, {
-      lambdaFunction: validatorFn,
-      outputPath: '$.Payload',
-    });
+    
 
   
-    const createIdTask = new tasks.LambdaInvoke(this, `${projectName}-CreateNewId`, {
-      lambdaFunction: step1CreateNewId.lambdaFunction,
-      outputPath: '$.Payload',
-    });
+  
 
  
 
@@ -251,8 +253,8 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
     });
 
 
-      const definition = validateTask
-        .next (createIdTask)
+      const definition = validateLambdaTask.task
+        .next (step1CreateNewIdTask.task)
         .next(step1GlueJob.task)
         .next(step2GlueJob.task)
         .next(step3GlueJob.task)
