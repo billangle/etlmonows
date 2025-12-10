@@ -14,6 +14,7 @@ import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { FpacGlueJob } from '@fpacfsa/constructs/FpacGlueJob';
 import { ProjectS3Folders } from '@fpacfsa/constructs/ProjectS3Folders';
 import { FpacLambda } from '@fpacfsa/constructs/FpacLambda';
+import { FpacLambdaTask } from '@fpacfsa/constructs/FpacLambdaTask';
 
 
 interface ConfigurationData {
@@ -133,7 +134,7 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
     });
 
 
-    const finalLogResults = new FpacLambda (this, `${projectName}-FinalLogResultsLambda`, {
+    const finalLogResultsTask = new FpacLambdaTask (this, `${projectName}-FinalLogResultsLambda`, {
       functionName: `FSA-${props.deployEnv}-${projectName}-LogResults`,
       functionCode: `${lambdaRootPath}LogResults`,
       role: etlLambdaRole,
@@ -142,6 +143,8 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
         TABLE_NAME: props.configData.dynamoTableName,
       },
       layers: [thirdPartyLayer, customLayer],
+      projectName: projectName,
+      outputPath: '$.Payload',
     });
 
     // ===== Glue Data Catalog (Database) – L1 =====
@@ -222,10 +225,7 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
       outputPath: '$.Payload',
     });
 
-    const logResultsTask = new tasks.LambdaInvoke(this, `${projectName}-LogResults`, {
-      lambdaFunction: finalLogResults.lambdaFunction,
-      outputPath: '$.Payload',
-    });
+ 
 
    
 
@@ -257,7 +257,7 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
         .next(step2GlueJob.task)
         .next(step3GlueJob.task)
         .next(logGlueResults)
-        .next(logResultsTask)
+        .next(finalLogResultsTask.task)
         .next(startCrawler)
         .next(new sfn.Choice(this, 'Was Glue successful?')
           .when(sfn.Condition.stringEquals('$.logged.jobDetails.JobRunState', 'SUCCEEDED'), success)
