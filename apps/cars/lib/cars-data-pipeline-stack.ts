@@ -15,6 +15,7 @@ import { FpacGlueJob } from '@fpacfsa/constructs/FpacGlueJob';
 import { ProjectS3Folders } from '@fpacfsa/constructs/ProjectS3Folders';
 import { FpacLambda } from '@fpacfsa/constructs/FpacLambda';
 import { FpacLambdaTask } from '@fpacfsa/constructs/FpacLambdaTask';
+import { FpacCrawler } from '@fpacfsa/constructs/FpacCrawler';
 
 
 interface ConfigurationData {
@@ -167,25 +168,11 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
 
 
 
-    // ===== Glue Data Catalog (Database) – L1 =====
-    
-    class ExistingGlueDatabase extends Construct {
-      public readonly databaseArn: string;
-      public readonly databaseName: string;
-      constructor(scope: Construct, id: string, props: { databaseArn: string; databaseName: string }) {
-        super(scope, id);
-        this.databaseArn = props.databaseArn;
-        this.databaseName = props.databaseName;
-      }
-    }
+    // ===== Glue Crawler (targets processed/output) – L1 =====
+   //** Crawler must be in the stack */
 
     const databaseName = props.configData.databaseName;
-    const glueDb = new ExistingGlueDatabase(this, 'FpacFsaGlueDatabase', { databaseArn, databaseName });
-
-
-    // ===== Glue Crawler (targets processed/output) – L1 =====
-    finalBucket.grantRead(crawlerRole);
-
+    
     const crawlerName = `FSA-${props.deployEnv}-${projectName}-CRAWLER`;
     const crawler = new glue_l1.CfnCrawler(this, `${projectName}-ProcessedCrawler`, {
       name: crawlerName,
@@ -203,7 +190,7 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
     });
 
 
-    // Conditional trigger: run crawler when ETL job succeeds
+
     const crawlerTrigger = new glue_l1.CfnTrigger(this, `${projectName}-CrawlerTrigger`, {
       name: `${cdk.Stack.of(this).stackName}-crawler-trigger`,
       type: 'CONDITIONAL',
@@ -219,25 +206,18 @@ export class FpacCarsDataPipelineStack extends cdk.Stack {
         crawlerName: crawler.name,
       }],
     });
+
     crawlerTrigger.addDependency(step3GlueJob.trigger);
     crawlerTrigger.addDependency(crawler);
 
-    
-
-  
-  
-
- 
-
-   
-
-    // Start crawler (does not wait for completion)
 
     const startCrawler = new tasks.GlueStartCrawlerRun(this, `Start ${projectName} Processed Crawler`, {
-      crawlerName: crawler.name!,
-      resultPath: '$.glueResult',
-    });
+            crawlerName: crawler.name!,
+            resultPath: '$.glueResult',
+        });
 
+
+    finalBucket.grantRead(crawlerRole);
  
     const success = new sfn.Succeed(this, 'Success');
     const fail = new sfn.Fail(this, 'Fail');
