@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="SonarQube-Jenkins-Bitbucket-Flow">
+    <mxGraphModel dx="1000" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="aws" value="AWS Account / VPC" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="700" height="320" as="geometry"/>
+        </mxCell>
+        <mxCell id="ec2" value="EC2 (RHEL)&#10;- Jenkins 2.504.3&#10;- SonarQube Server" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" vertex="1" parent="aws">
+          <mxGeometry x="80" y="100" width="260" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="rds" value="PostgreSQL / RDS&#10;(SonarQube DB)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" vertex="1" parent="aws">
+          <mxGeometry x="380" y="100" width="260" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="jenkins" value="Jenkins&#10;Pipelines &amp; Webhook Endpoint" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" vertex="1" parent="aws">
+          <mxGeometry x="80" y="230" width="260" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="sonar" value="SonarQube&#10;Code Quality Server&#10;http://&lt;EC2-IP&gt;:9000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" vertex="1" parent="aws">
+          <mxGeometry x="380" y="230" width="260" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="dev" value="Developer Workstation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="80" y="400" width="200" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="git" value="Bitbucket&#10;Git Repository" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="340" y="400" width="200" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="hook" value="Bitbucket Webhook&#10;→ Jenkins on EC2&#10;http://&lt;EC2-IP&gt;:8080/…" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="600" y="400" width="220" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1" value="git push" style="edgeStyle=orthogonalEdgeStyle;rounded=1;endArrow=block;html=1;" edge="1" parent="1" source="dev" target="git">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" value="Webhook on commit / PR" style="edgeStyle=orthogonalEdgeStyle;rounded=1;endArrow=block;html=1;" edge="1" parent="1" source="git" target="hook">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" value="Trigger Jenkins job" style="edgeStyle=orthogonalEdgeStyle;rounded=1;endArrow=block;html=1;" edge="1" parent="1" source="hook" target="jenkins">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" value="SonarScanner / Analysis" style="edgeStyle=orthogonalEdgeStyle;rounded=1;endArrow=block;html=1;" edge="1" parent="1" source="jenkins" target="sonar">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" value="JDBC&#10;sonar.jdbc.url" style="edgeStyle=orthogonalEdgeStyle;rounded=1;endArrow=block;html=1;" edge="1" parent="1" source="sonar" target="rds">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" value="Quality Gate Webhook" style="edgeStyle=orthogonalEdgeStyle;rounded=1;endArrow=block;html=1;" edge="1" parent="1" source="sonar" target="jenkins">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
