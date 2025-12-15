@@ -31,7 +31,7 @@
         <mxCell id="jenkins" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Jenkins&#xa;Pipelines &amp; Webhook Endpoint" vertex="1">
           <mxGeometry height="90" width="260" x="80" y="150" as="geometry" />
         </mxCell>
-        <mxCell id="sonar" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="SonarQube&#xa;Code Quality Server&#xa;http://&lt;EC2-IP&gt;:9000" vertex="1">
+        <mxCell id="sonar" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="SonarQube&lt;br&gt;Code Quality Server" vertex="1">
           <mxGeometry height="90" width="225" x="595" y="150" as="geometry" />
         </mxCell>
         <mxCell id="NIXH_9MAJfpPW-cJjmku-1" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="View Scans" vertex="1">
