@@ -28,7 +28,7 @@ from datetime import datetime, timedelta, timezone
 # ---------------- CONFIG ----------------
 GLUE_DPU_RATE = 0.44        # USD per DPU-hour
 DAYS_BACK = 30              # Lookback window in days
-MAX_FAILED_RUNS = 20        # Number of non-success runs to display
+MAX_FAILED_RUNS = 50       # Number of non-success runs to display
 # ----------------------------------------
 
 glue = boto3.client("glue")
