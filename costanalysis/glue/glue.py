@@ -2,13 +2,13 @@
 
 """
 Summarize AWS Glue DPU usage for ALL JOBS in the account/region,
-filtered to ONLY the last 30 days of runs.
+filtered to ONLY the last N days (DAYS_BACK).
 
 Outputs:
 - Total successful DPU hours
 - Total failed DPU hours
 - Estimated cost
-- Top 20 failed runs by DPU hours (job, run id, hours, script location)
+- Top 20 failed runs by DPU hours
 
 Requires:
 - pip install boto3
@@ -19,7 +19,7 @@ import boto3
 from datetime import datetime, timedelta, timezone
 
 GLUE_DPU_RATE = 0.44  # USD per DPU-hour
-DAYS_BACK = 30        # filter period
+DAYS_BACK = 30        # 👈 Change this to adjust lookback window
 
 glue = boto3.client("glue")
 
@@ -41,7 +41,6 @@ def get_job_definition(job_name: str):
     max_capacity = job.get("MaxCapacity")
     worker_type = job.get("WorkerType")
     num_workers = job.get("NumberOfWorkers")
-
     script_location = job.get("Command", {}).get("ScriptLocation", "")
 
     return max_capacity, worker_type, num_workers, script_location
@@ -52,26 +51,23 @@ def dpu_hours_for_run(run: dict,
                       worker_type=None,
                       num_workers=None) -> float:
     """
-    Compute DPU hours for a single Glue run.
-
-    Prefer exact DPUSeconds when available.
-    Otherwise approximate with ExecutionTime × capacity.
+    Compute DPU hours for a single run.
+    Prioritize DPUSeconds; fallback to ExecutionTime × capacity.
     """
-    # Exact metric if present
     dpu_seconds = run.get("DPUSeconds")
     if dpu_seconds is not None:
         return dpu_seconds / 3600.0
 
-    # Approximate
     exec_time_sec = run.get("ExecutionTime") or 0
 
     worker_to_dpu = {"G.025X": 0.25, "G.1X": 1, "G.2X": 2}
+
     if worker_type and num_workers:
         dpu_capacity = worker_to_dpu.get(worker_type, 1) * num_workers
     elif job_max_capacity:
         dpu_capacity = job_max_capacity
     else:
-        dpu_capacity = 10  # default fallback
+        dpu_capacity = 10  # fallback guess for old static jobs
 
     return exec_time_sec * dpu_capacity / 3600.0
 
@@ -85,7 +81,8 @@ def main():
         return
 
     print(f"Found {len(job_names)} Glue jobs in this region.")
-    print(f"Filtering runs to StartedOn >= {cutoff.isoformat()}")
+    print(f"Filtering runs to StartedOn >= {cutoff.isoformat()} "
+          f"({DAYS_BACK} days ago)")
 
     total_success_dpu = 0.0
     total_failed_dpu = 0.0
@@ -100,7 +97,7 @@ def main():
             for run in page.get("JobRuns", []):
                 started_on = run.get("StartedOn")
 
-                # skip runs outside the 30-day window
+                # Only include runs in the last DAYS_BACK days
                 if started_on and started_on < cutoff:
                     continue
 
@@ -127,31 +124,32 @@ def main():
                         "script_location": script_location,
                     })
 
-    # Sort failed runs by DPU hours descending
+    # Sort failed runs by largest DPU impact
     failed_runs_details.sort(key=lambda x: x["dpu_hours"], reverse=True)
     top_failed = failed_runs_details[:20]
 
     total_dpu = total_success_dpu + total_failed_dpu
 
-    print("\n=== LAST 30 DAYS SUMMARY (ALL GLUE JOBS) ===")
-    print(f"Runs analyzed in last 30 days: {counted_runs:,}")
-    print(f"Successful DPU hours: {total_success_dpu:,.3f}")
-    print(f"Failed DPU hours:    {total_failed_dpu:,.3f}")
-    print(f"Total DPU hours:     {total_dpu:,.3f}")
+    print(f"\n=== SUMMARY FOR LAST {DAYS_BACK} DAYS (ALL GLUE JOBS) ===")
+    print(f"Runs analyzed:         {counted_runs:,}")
+    print(f"Successful DPU hours:  {total_success_dpu:,.3f}")
+    print(f"Failed DPU hours:      {total_failed_dpu:,.3f}")
+    print(f"Total DPU hours:       {total_dpu:,.3f}")
 
-    # cost
+    # Cost analysis
     success_cost = total_success_dpu * GLUE_DPU_RATE
     failed_cost = total_failed_dpu * GLUE_DPU_RATE
     total_cost = success_cost + failed_cost
 
-    print("\nEstimated cost (using ${:.2f}/DPU-hour):".format(GLUE_DPU_RATE))
-    print(f"  Success cost: ${success_cost:,.2f}")
-    print(f"  Failed  cost: ${failed_cost:,.2f}")
-    print(f"  Total  cost:  ${total_cost:,.2f}")
+    print(f"\nEstimated cost for last {DAYS_BACK} days "
+          f"(rate ${GLUE_DPU_RATE:.2f}/DPU-hour):")
+    print(f"  Successful runs cost: ${success_cost:,.2f}")
+    print(f"  Failed runs cost:     ${failed_cost:,.2f}")
+    print(f"  Total Glue cost:      ${total_cost:,.2f}")
 
-    print("\n=== TOP 20 FAILED RUNS BY DPU HOURS (LAST 30 DAYS) ===")
+    print(f"\n=== TOP 20 FAILED RUNS BY DPU HOURS (LAST {DAYS_BACK} DAYS) ===")
     if not top_failed:
-        print("No failed runs found in the last 30 days.")
+        print("No failed runs found in this time window.")
         return
 
     for i, fr in enumerate(top_failed, start=1):
