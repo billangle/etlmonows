@@ -31,3 +31,7 @@
 
 ---
 
+
+## AWS Glue Monitoring Screenshot
+
+![Glue Monitoring](glue-cost-24763.png)
