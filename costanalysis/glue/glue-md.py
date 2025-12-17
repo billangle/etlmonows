@@ -4,37 +4,32 @@
 AWS Glue Cost Report (Markdown)
 
 Summarize AWS Glue DPU usage for ALL JOBS in the account/region,
-filtered to ONLY the last N days (DAYS_BACK).
+filtered to runs starting from 00:00 UTC on the start date.
 
 Outputs:
-- A Markdown report (README-style) with:
+- A Markdown report with:
   - Reporting window start/end timestamps
   - Total successful DPU hours
   - Total failed DPU hours
   - Estimated cost using GLUE_DPU_RATE
-  - Top N failed runs by DPU hours (configurable with MAX_FAILED_RUNS)
+  - Top N failed runs by DPU hours (MAX_FAILED_RUNS)
 - Output filename includes human-readable date range:
     glue_cost_report_YYYY-MM-DD_to_YYYY-MM-DD.md
-
-Requirements:
-- pip install boto3
-- AWS CloudShell or any environment with valid AWS credentials + region
 """
 
 import boto3
 from datetime import datetime, timedelta, timezone
 
 # ---------------- CONFIG ----------------
-GLUE_DPU_RATE = 0.44        # USD per DPU-hour (standard Glue ETL/Spark pricing in many regions)
+GLUE_DPU_RATE = 0.44        # USD per DPU-hour
 DAYS_BACK = 30              # Lookback window in days
-MAX_FAILED_RUNS = 20        # Number of failed runs to display in the report
+MAX_FAILED_RUNS = 20        # Number of failed runs to display
 # ----------------------------------------
 
 glue = boto3.client("glue")
 
 
 def list_all_jobs():
-    """Return all Glue job names in the current account/region."""
     job_names = []
     paginator = glue.get_paginator("list_jobs")
     for page in paginator.paginate():
@@ -43,12 +38,6 @@ def list_all_jobs():
 
 
 def get_job_definition(job_name: str):
-    """
-    Retrieve job-level metadata used for reporting and (if needed) approximating DPU-hours:
-      - MaxCapacity (legacy)
-      - WorkerType / NumberOfWorkers (modern)
-      - Command.ScriptLocation (S3 path to the Glue script)
-    """
     resp = glue.get_job(JobName=job_name)
     job = resp["Job"]
 
@@ -61,30 +50,19 @@ def get_job_definition(job_name: str):
 
 
 def dpu_hours_for_run(run: dict, job_max_capacity=None, worker_type=None, num_workers=None) -> float:
-    """
-    Compute DPU-hours for a single run.
-
-    Best case:
-      - Uses run['DPUSeconds'] if present (most accurate).
-    Fallback:
-      - Approximate using ExecutionTime × capacity.
-    """
     dpu_seconds = run.get("DPUSeconds")
     if dpu_seconds is not None:
         return dpu_seconds / 3600.0
 
     exec_time_sec = run.get("ExecutionTime") or 0
 
-    # AWS standard mapping for Glue worker types → DPU per worker
     worker_to_dpu = {"G.025X": 0.25, "G.1X": 1, "G.2X": 2}
-
     if worker_type and num_workers:
         dpu_capacity = worker_to_dpu.get(worker_type, 1) * num_workers
     elif job_max_capacity:
         dpu_capacity = job_max_capacity
     else:
-        # Last-resort fallback (common legacy default for Glue ETL jobs)
-        dpu_capacity = 10
+        dpu_capacity = 10  # fallback
 
     return exec_time_sec * dpu_capacity / 3600.0
 
@@ -94,10 +72,22 @@ def money(x: float) -> str:
 
 
 def main():
+    # End time = now (UTC)
     end_time = datetime.now(timezone.utc)
-    start_time = end_time - timedelta(days=DAYS_BACK)
 
-    # Human-readable date range for filename (dates only; timestamps are in the report body)
+    # Start date = (today - DAYS_BACK) at 00:00 UTC
+    start_date = (end_time.date() - timedelta(days=DAYS_BACK))
+    start_time = datetime(
+        year=start_date.year,
+        month=start_date.month,
+        day=start_date.day,
+        hour=0,
+        minute=0,
+        second=0,
+        tzinfo=timezone.utc,
+    )
+
+    # Human-readable date range for filename
     start_str = start_time.strftime("%Y-%m-%d")
     end_str = end_time.strftime("%Y-%m-%d")
     output_file = f"glue_cost_report_{start_str}_to_{end_str}.md"
@@ -110,7 +100,6 @@ def main():
     total_success_dpu = 0.0
     total_failed_dpu = 0.0
     counted_runs = 0
-
     failed_runs_details = []
 
     for job_name in job_names:
@@ -154,14 +143,13 @@ def main():
     failed_cost = total_failed_dpu * GLUE_DPU_RATE
     total_cost = success_cost + failed_cost
 
-    # ---------------- README.md CONTENT ----------------
     md = []
     md.append("# AWS Glue Cost Report\n")
 
     md.append("## Reporting Window\n")
     md.append(f"- **Start (UTC):** {start_time.isoformat()}")
     md.append(f"- **End (UTC):** {end_time.isoformat()}")
-    md.append(f"- **Lookback:** Last **{DAYS_BACK}** days\n")
+    md.append(f"- **Lookback:** Last **{DAYS_BACK}** days (start pinned to 00:00 UTC)\n")
 
     md.append("## Summary\n")
     md.append(f"- **Glue jobs scanned:** {len(job_names):,}")
@@ -186,7 +174,6 @@ def main():
             md.append(f"- **DPU hours:** {fr['dpu_hours']:.3f}")
             md.append(f"- **Script:** `{fr['script_location']}`\n")
 
-    # Write report
     with open(output_file, "w") as f:
         f.write("\n".join(md))
 
