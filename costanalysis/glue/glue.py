@@ -20,6 +20,7 @@ from datetime import datetime, timedelta, timezone
 
 GLUE_DPU_RATE = 0.44  # USD per DPU-hour
 DAYS_BACK = 30        # 👈 Change this to adjust lookback window
+MAX_FAILED_RUNS = 20  # Top N failed runs to report
 
 glue = boto3.client("glue")
 
@@ -126,7 +127,7 @@ def main():
 
     # Sort failed runs by largest DPU impact
     failed_runs_details.sort(key=lambda x: x["dpu_hours"], reverse=True)
-    top_failed = failed_runs_details[:20]
+    top_failed = failed_runs_details[:MAX_FAILED_RUNS]
 
     total_dpu = total_success_dpu + total_failed_dpu
 
@@ -147,7 +148,7 @@ def main():
     print(f"  Failed runs cost:     ${failed_cost:,.2f}")
     print(f"  Total Glue cost:      ${total_cost:,.2f}")
 
-    print(f"\n=== TOP 20 FAILED RUNS BY DPU HOURS (LAST {DAYS_BACK} DAYS) ===")
+    print(f"\n=== TOP {MAX_FAILED_RUNS} FAILED RUNS BY DPU HOURS (LAST {DAYS_BACK} DAYS) ===")
     if not top_failed:
         print("No failed runs found in this time window.")
         return
