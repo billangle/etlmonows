@@ -15,7 +15,7 @@ Requirements:
 import boto3
 from collections import defaultdict
 
-PREFIX = "FSA-PROD"
+PREFIX = "FSA"
 # If you want to see cost as well, set this (standard Glue price in USD per DPU-hour)
 GLUE_DPU_RATE = 0.44
 
