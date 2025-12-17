@@ -21,7 +21,7 @@ from datetime import datetime, timedelta, timezone
 
 GLUE_DPU_RATE = 0.44   # USD per DPU-hour
 DAYS_BACK = 30         # Lookback window (days)
-MAX_FAILED_RUNS = 20  # Top N failed runs to report
+MAX_FAILED_RUNS = 50  # Top N failed runs to report
 OUTPUT_FILE = "glue_cost_report.md"
 
 glue = boto3.client("glue")
