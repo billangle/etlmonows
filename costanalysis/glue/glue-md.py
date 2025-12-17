@@ -6,13 +6,18 @@ AWS Glue Cost Report (Markdown)
 Summarize AWS Glue DPU usage for ALL JOBS in the account/region,
 filtered to runs starting from 00:00 UTC on the start date.
 
+Includes a breakdown for:
+- SUCCEEDED
+- FAILED
+- CANCELLED (STOPPED)
+- OTHER (all other states)
+
 Outputs:
 - A Markdown report with:
   - Reporting window start/end timestamps
-  - Total successful DPU hours
-  - Total failed DPU hours
+  - DPU-hours by state
   - Estimated cost using GLUE_DPU_RATE
-  - Top N failed runs by DPU hours (MAX_FAILED_RUNS)
+  - Top N non-success runs by DPU hours (MAX_FAILED_RUNS)
 - Output filename includes human-readable date range:
     glue_cost_report_YYYY-MM-DD_to_YYYY-MM-DD.md
 """
@@ -23,10 +28,15 @@ from datetime import datetime, timedelta, timezone
 # ---------------- CONFIG ----------------
 GLUE_DPU_RATE = 0.44        # USD per DPU-hour
 DAYS_BACK = 30              # Lookback window in days
-MAX_FAILED_RUNS = 50       # Number of failed runs to display
+MAX_FAILED_RUNS = 20        # Number of non-success runs to display
 # ----------------------------------------
 
 glue = boto3.client("glue")
+
+# Glue states
+STATE_SUCCESS = "SUCCEEDED"
+STATE_FAILED = "FAILED"
+STATE_CANCELLED = "STOPPED"   # user-cancelled/stopped runs most often land here
 
 
 def list_all_jobs():
@@ -87,7 +97,6 @@ def main():
         tzinfo=timezone.utc,
     )
 
-    # Human-readable date range for filename
     start_str = start_time.strftime("%Y-%m-%d")
     end_str = end_time.strftime("%Y-%m-%d")
     output_file = f"glue_cost_report_{start_str}_to_{end_str}.md"
@@ -97,10 +106,22 @@ def main():
         print("No Glue jobs found.")
         return
 
-    total_success_dpu = 0.0
-    total_failed_dpu = 0.0
+    dpu_by_state = {
+        "SUCCEEDED": 0.0,
+        "FAILED": 0.0,
+        "CANCELLED": 0.0,   # STOPPED
+        "OTHER": 0.0,
+    }
+
+    runs_by_state = {
+        "SUCCEEDED": 0,
+        "FAILED": 0,
+        "CANCELLED": 0,
+        "OTHER": 0,
+    }
+
     counted_runs = 0
-    failed_runs_details = []
+    nonsuccess_runs_details = []  # includes FAILED + CANCELLED + OTHER
 
     for job_name in job_names:
         max_cap, worker_type, num_workers, script_location = get_job_definition(job_name)
@@ -112,7 +133,7 @@ def main():
                 if started_on and started_on < start_time:
                     continue
 
-                state = run.get("JobRunState")
+                state = run.get("JobRunState") or "UNKNOWN"
                 run_id = run.get("Id") or run.get("JobRunId")
 
                 dpu_h = dpu_hours_for_run(
@@ -124,24 +145,35 @@ def main():
 
                 counted_runs += 1
 
-                if state == "SUCCEEDED":
-                    total_success_dpu += dpu_h
-                elif state == "FAILED":
-                    total_failed_dpu += dpu_h
-                    failed_runs_details.append({
+                if state == STATE_SUCCESS:
+                    bucket = "SUCCEEDED"
+                elif state == STATE_FAILED:
+                    bucket = "FAILED"
+                elif state == STATE_CANCELLED:
+                    bucket = "CANCELLED"
+                else:
+                    bucket = "OTHER"
+
+                dpu_by_state[bucket] += dpu_h
+                runs_by_state[bucket] += 1
+
+                if bucket != "SUCCEEDED":
+                    nonsuccess_runs_details.append({
                         "job_name": job_name,
                         "run_id": run_id,
+                        "state": state,
                         "dpu_hours": dpu_h,
                         "script_location": script_location,
                     })
 
-    failed_runs_details.sort(key=lambda x: x["dpu_hours"], reverse=True)
-    top_failed = failed_runs_details[:MAX_FAILED_RUNS]
+    nonsuccess_runs_details.sort(key=lambda x: x["dpu_hours"], reverse=True)
+    top_nonsuccess = nonsuccess_runs_details[:MAX_FAILED_RUNS]
 
-    total_dpu = total_success_dpu + total_failed_dpu
-    success_cost = total_success_dpu * GLUE_DPU_RATE
-    failed_cost = total_failed_dpu * GLUE_DPU_RATE
-    total_cost = success_cost + failed_cost
+    total_dpu = sum(dpu_by_state.values())
+    total_cost = total_dpu * GLUE_DPU_RATE
+
+    # Costs per bucket (optional but useful)
+    cost_by_state = {k: v * GLUE_DPU_RATE for k, v in dpu_by_state.items()}
 
     md = []
     md.append("# AWS Glue Cost Report\n")
@@ -153,24 +185,31 @@ def main():
 
     md.append("## Summary\n")
     md.append(f"- **Glue jobs scanned:** {len(job_names):,}")
-    md.append(f"- **Runs analyzed (in window):** {counted_runs:,}")
-    md.append(f"- **Successful DPU hours:** {total_success_dpu:,.3f}")
-    md.append(f"- **Failed DPU hours:** {total_failed_dpu:,.3f}")
-    md.append(f"- **Total DPU hours:** {total_dpu:,.3f}\n")
+    md.append(f"- **Runs analyzed (in window):** {counted_runs:,}\n")
+
+    md.append("## DPU Hours by Run Outcome\n")
+    md.append(f"- **SUCCEEDED:** {dpu_by_state['SUCCEEDED']:,.3f} DPU-hrs  ({runs_by_state['SUCCEEDED']:,} runs)")
+    md.append(f"- **FAILED:** {dpu_by_state['FAILED']:,.3f} DPU-hrs     ({runs_by_state['FAILED']:,} runs)")
+    md.append(f"- **CANCELLED (STOPPED):** {dpu_by_state['CANCELLED']:,.3f} DPU-hrs ({runs_by_state['CANCELLED']:,} runs)")
+    md.append(f"- **OTHER:** {dpu_by_state['OTHER']:,.3f} DPU-hrs      ({runs_by_state['OTHER']:,} runs)")
+    md.append(f"- **TOTAL:** {total_dpu:,.3f} DPU-hrs\n")
 
     md.append(f"## Estimated Cost (at {money(GLUE_DPU_RATE)} per DPU-hour)\n")
-    md.append(f"- **Successful runs cost:** {money(success_cost)}")
-    md.append(f"- **Failed runs cost:** {money(failed_cost)}")
-    md.append(f"- **Total Glue cost:** {money(total_cost)}\n")
+    md.append(f"- **SUCCEEDED cost:** {money(cost_by_state['SUCCEEDED'])}")
+    md.append(f"- **FAILED cost:** {money(cost_by_state['FAILED'])}")
+    md.append(f"- **CANCELLED cost:** {money(cost_by_state['CANCELLED'])}")
+    md.append(f"- **OTHER cost:** {money(cost_by_state['OTHER'])}")
+    md.append(f"- **TOTAL Glue cost:** {money(total_cost)}\n")
 
-    md.append(f"## Top {MAX_FAILED_RUNS} Failed Runs by DPU Hours\n")
-    if not top_failed:
-        md.append("No failed runs found in this period.\n")
+    md.append(f"## Top {MAX_FAILED_RUNS} Non-Success Runs by DPU Hours\n")
+    if not top_nonsuccess:
+        md.append("No non-success runs found in this period.\n")
     else:
-        for i, fr in enumerate(top_failed, start=1):
+        for i, fr in enumerate(top_nonsuccess, start=1):
             md.append(f"### #{i}\n")
             md.append(f"- **Job name:** `{fr['job_name']}`")
             md.append(f"- **Run ID:** `{fr['run_id']}`")
+            md.append(f"- **State:** `{fr['state']}`")
             md.append(f"- **DPU hours:** {fr['dpu_hours']:.3f}")
             md.append(f"- **Script:** `{fr['script_location']}`\n")
 
