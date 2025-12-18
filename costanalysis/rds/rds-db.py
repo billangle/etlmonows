@@ -18,7 +18,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 # ---------------- CONFIG ----------------
-DAYS_BACK = 30
+DAYS_BACK = 14
 MAX_INSTANCES_IN_SUMMARY = 50
 MAX_LINE_ITEMS_PER_INSTANCE = 10
 OUTPUT_PREFIX = "rds_instance_cost_report"
