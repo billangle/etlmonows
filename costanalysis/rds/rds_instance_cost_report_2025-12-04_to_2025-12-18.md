@@ -1,94 +1,58 @@
-# RDS Cost Report by DB Instance (Fixed vs Dynamic)
+# RDS Cost Report by DB Instance (with Last Reboot)
 
 ## Reporting Window
 
-- **Start (UTC, pinned to 00:00):** 2025-12-04T00:00:00+00:00
-- **End (UTC):** 2025-12-18T13:31:57.810294+00:00
-- **Lookback:** Last **14** days
+- **Start (UTC):** 2025-12-04T00:00:00+00:00
+- **End (UTC):** 2025-12-18T13:47:28.381395+00:00
 
-## Totals (All DB Instances)
+## Per-Instance Summary
 
-- **Fixed:** $0.00
-- **Dynamic:** $6,734.11
-- **Total:** $6,734.11
+| DB Instance | Engine | Fixed | Dynamic | Total | Last Reboot (UTC) |
+|---|---|---:|---:|---:|---|
+| `arn:aws:rds:us-east-1:253490756794:cluster:cluster-vtslk3oxadrszhpgibuav33huu` |  | $3,816.12 | $45.04 | $3,861.15 | N/A |
+| `disc-fsa-prod-db-pg-instance-1-us-east-1a` | aurora-postgresql | $0.00 | $1,459.95 | $1,459.95 | N/A |
+| `disc-fsa-prod-db-pg-instance-1` | aurora-postgresql | $0.00 | $1,418.11 | $1,418.11 | N/A |
+| `disc-fsa-prod-oracle-oas` | oracle-ee | $104.80 | $722.41 | $827.21 | N/A |
+| `NoResourceId` |  | $-431.30 | $-401.01 | $-832.31 | N/A |
 
-## Per-Instance Summary (Top 50 by total cost)
-
-| DB Instance | Fixed | Dynamic | Total | ResourceId |
-|---|---:|---:|---:|---|
-| `arn:aws:rds:us-east-1:253490756794:cluster:cluster-vtslk3oxadrszhpgibuav33huu` | $0.00 | $3,861.15 | $3,861.15 | `arn:aws:rds:us-east-1:253490756794:cluster:cluster-vtslk3oxadrszhpgibuav33huu` |
-| `disc-fsa-prod-db-pg-instance-1-us-east-1a (aurora-postgresql)` | $0.00 | $1,459.95 | $1,459.95 | `arn:aws:rds:us-east-1:253490756794:db:disc-fsa-prod-db-pg-instance-1-us-east-1a` |
-| `disc-fsa-prod-db-pg-instance-1 (aurora-postgresql)` | $0.00 | $1,418.11 | $1,418.11 | `arn:aws:rds:us-east-1:253490756794:db:disc-fsa-prod-db-pg-instance-1` |
-| `disc-fsa-prod-oracle-oas (oracle-ee)` | $0.00 | $827.21 | $827.21 | `arn:aws:rds:us-east-1:253490756794:db:disc-fsa-prod-oracle-oas` |
-| `NoResourceId` | $0.00 | $-832.31 | $-832.31 | `NoResourceId` |
-
-## Top Non-Zero Instances (Detail: top usage-types per instance)
+## Instance Details
 
 ### arn:aws:rds:us-east-1:253490756794:cluster:cluster-vtslk3oxadrszhpgibuav33huu
 
-- **Fixed:** $0.00
-- **Dynamic:** $3,861.15
-- **Total:** $3,861.15
-- **ResourceId:** `arn:aws:rds:us-east-1:253490756794:cluster:cluster-vtslk3oxadrszhpgibuav33huu`
+- **Engine:** 
+- **Fixed cost:** $3,816.12
+- **Dynamic cost:** $45.04
+- **Total cost:** $3,861.15
+- **Last reboot:** Not found in last 30 days
 
-**Top 10 usage-types:**
+### disc-fsa-prod-db-pg-instance-1-us-east-1a
 
-| Bucket | UsageType | Cost |
-|---|---|---:|
-| DYNAMIC | `Aurora:StorageIOUsage` | $3,370.59 |
-| DYNAMIC | `Aurora:StorageUsage` | $445.52 |
-| DYNAMIC | `Aurora:BackupUsage` | $45.04 |
+- **Engine:** aurora-postgresql
+- **Fixed cost:** $0.00
+- **Dynamic cost:** $1,459.95
+- **Total cost:** $1,459.95
+- **Last reboot:** Not found in last 30 days
 
-### disc-fsa-prod-db-pg-instance-1-us-east-1a (aurora-postgresql)
+### disc-fsa-prod-db-pg-instance-1
 
-- **Fixed:** $0.00
-- **Dynamic:** $1,459.95
-- **Total:** $1,459.95
-- **ResourceId:** `arn:aws:rds:us-east-1:253490756794:db:disc-fsa-prod-db-pg-instance-1-us-east-1a`
+- **Engine:** aurora-postgresql
+- **Fixed cost:** $0.00
+- **Dynamic cost:** $1,418.11
+- **Total cost:** $1,418.11
+- **Last reboot:** Not found in last 30 days
 
-**Top 10 usage-types:**
+### disc-fsa-prod-oracle-oas
 
-| Bucket | UsageType | Cost |
-|---|---|---:|
-| DYNAMIC | `Aurora:ServerlessV2Usage` | $1,459.95 |
-| DYNAMIC | `DataTransfer-Out-Bytes` | $0.00 |
-| DYNAMIC | `DataTransfer-In-Bytes` | $0.00 |
-| DYNAMIC | `USE1-DataTransfer-xAZ-In-Bytes` | $0.00 |
-| DYNAMIC | `USE1-DataTransfer-xAZ-Out-Bytes` | $0.00 |
+- **Engine:** oracle-ee
+- **Fixed cost:** $104.80
+- **Dynamic cost:** $722.41
+- **Total cost:** $827.21
+- **Last reboot:** Not found in last 30 days
 
-### disc-fsa-prod-db-pg-instance-1 (aurora-postgresql)
+### NoResourceId
 
-- **Fixed:** $0.00
-- **Dynamic:** $1,418.11
-- **Total:** $1,418.11
-- **ResourceId:** `arn:aws:rds:us-east-1:253490756794:db:disc-fsa-prod-db-pg-instance-1`
-
-**Top 10 usage-types:**
-
-| Bucket | UsageType | Cost |
-|---|---|---:|
-| DYNAMIC | `Aurora:ServerlessV2Usage` | $1,418.11 |
-| DYNAMIC | `DataTransfer-Out-Bytes` | $0.00 |
-| DYNAMIC | `DataTransfer-In-Bytes` | $0.00 |
-
-### disc-fsa-prod-oracle-oas (oracle-ee)
-
-- **Fixed:** $0.00
-- **Dynamic:** $827.21
-- **Total:** $827.21
-- **ResourceId:** `arn:aws:rds:us-east-1:253490756794:db:disc-fsa-prod-oracle-oas`
-
-**Top 10 usage-types:**
-
-| Bucket | UsageType | Cost |
-|---|---|---:|
-| DYNAMIC | `Multi-AZUsage:db.r5d.2xl` | $722.41 |
-| DYNAMIC | `RDS:Multi-AZ-GP2-Storage` | $104.80 |
-| DYNAMIC | `DataTransfer-Out-Bytes` | $0.00 |
-| DYNAMIC | `DataTransfer-In-Bytes` | $0.00 |
-
-## Notes
-
-- This report uses **Cost Explorer resource-level attribution** (`GetCostAndUsageWithResources`) grouped by `RESOURCE_ID`. :contentReference[oaicite:7]{index=7}
-- Cost Explorer supports filtering/grouping by **Resources** (resource IDs). :contentReference[oaicite:8]{index=8}
-- If you need perfect month-long per-instance accuracy in all cases, use **CUR** and query `lineItem/ResourceId` (Athena). :contentReference[oaicite:9]{index=9}
+- **Engine:** 
+- **Fixed cost:** $-431.30
+- **Dynamic cost:** $-401.01
+- **Total cost:** $-832.31
+- **Last reboot:** Not found in last 30 days
