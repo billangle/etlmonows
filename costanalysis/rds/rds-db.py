@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
+
 """
-RDS per-DB-instance fixed vs dynamic cost report (Cost Explorer Resources API)
+RDS Per-DB-Instance Fixed vs Dynamic Cost Report
+INCLUDING Last Reboot Time (from RDS Events)
 
-- Uses Cost Explorer GetCostAndUsageWithResources (RESOURCE_ID) to attribute cost to DB instances.
-- Filters to Amazon RDS.
-- Groups by RESOURCE_ID and USAGE_TYPE.
-- Classifies USAGE_TYPE into FIXED vs DYNAMIC (heuristic).
-- Outputs a Markdown report whose filename includes a human-readable date range.
-- Start time pinned to 00:00 UTC on the start date.
-
-Docs:
-- GetCostAndUsageWithResources requires grouping by or filtering by ResourceId. :contentReference[oaicite:3]{index=3}
-- Cost Explorer supports filtering by Resources (RESOURCE_ID). :contentReference[oaicite:4]{index=4}
+- Uses Cost Explorer resource-level data
+- Attributes cost by DB instance
+- Splits Fixed vs Dynamic
+- Adds last reboot timestamp + message per instance
+- Outputs Markdown with human-readable date range in filename
 """
 
 import re
@@ -22,11 +19,9 @@ import boto3
 from botocore.exceptions import ClientError
 
 # ---------------- CONFIG ----------------
-DAYS_BACK = 30
-GLUE_STYLE_RATE = None  # set to a Decimal like Decimal("0.44") if you want a synthetic rate; otherwise use real billed costs.
-
-MAX_INSTANCES_IN_SUMMARY = 50     # show top N instances by total cost
-MAX_LINE_ITEMS_PER_INSTANCE = 10  # show top N usage-types per instance in the detail section
+DAYS_BACK = 14
+MAX_INSTANCES_IN_SUMMARY = 50
+MAX_LINE_ITEMS_PER_INSTANCE = 10
 OUTPUT_PREFIX = "rds_instance_cost_report"
 # ----------------------------------------
 
@@ -34,6 +29,8 @@ SERVICE_VALUE = "Amazon Relational Database Service"
 
 STATE_FIXED = "FIXED"
 STATE_DYNAMIC = "DYNAMIC"
+
+REBOOT_KEYWORDS = ["reboot", "restart", "failover"]
 
 def dec(x) -> Decimal:
     try:
@@ -51,52 +48,62 @@ def utc_window(days_back: int):
     return start_time, end_time
 
 def ce_time_period(start_time: datetime, end_time: datetime):
-    # CE End is exclusive; extend to include today's date
-    return {"Start": start_time.date().isoformat(), "End": (end_time.date() + timedelta(days=1)).isoformat()}
+    return {
+        "Start": start_time.date().isoformat(),
+        "End": (end_time.date() + timedelta(days=1)).isoformat()
+    }
 
 def classify_usage_type(usage_type: str) -> str:
     ut = (usage_type or "").lower()
-
-    fixed_patterns = [
-        r"\brds:dbinstance", r"\brds:instanceusage", r"\brds:inst",  # compute
-        r"\brds:storage", r"\brds:gp2storage", r"\brds:gp3storage",
-        r"\brds:io1storage", r"\brds:io2storage",                    # storage
-        r"\brds:provisionediops", r"\brds:piops",                    # provisioned IOPS (often baseline-ish)
-    ]
-
-    dynamic_patterns = [
-        r"\brds:iousage", r"\brds:iorequest",                        # variable IO
-        r"\brds:chargedbackupusage", r"\brds:backup",                # backup storage often variable :contentReference[oaicite:5]{index=5}
-        r"\bsnapshot\b",                                             # snapshot storage/copy
-        r"\bdataxfer\b|\bdatatransfer\b|\bdata transfer\b|\bxfer\b", # transfer
-        r"\brds:performanceinsights|\bperformance insights\b|\brds:pi\b",
-        r"\brds:proxy\b",
-        r"\benhanced monitoring\b|\bmonitoring\b",
-    ]
-
-    if any(re.search(p, ut) for p in fixed_patterns):
+    if any(x in ut for x in ["instance", "storage", "gp3", "gp2", "io1", "io2", "piops"]):
         return STATE_FIXED
-    if any(re.search(p, ut) for p in dynamic_patterns):
-        return STATE_DYNAMIC
-
-    # Default: treat unknown as DYNAMIC (safer for cost-control triage)
     return STATE_DYNAMIC
 
-def build_db_arn_map():
+def get_last_reboot(rds, db_id):
     """
-    Build mapping: DBInstanceArn -> DBInstanceIdentifier (and engine)
+    Returns (timestamp, message) of the most recent reboot-like event.
     """
+    try:
+        events = rds.describe_events(
+            SourceType="db-instance",
+            SourceIdentifier=db_id,
+            Duration=43200  # last 30 days
+        ).get("Events", [])
+    except ClientError:
+        return None, None
+
+    reboot_events = [
+        e for e in events
+        if any(k in e["Message"].lower() for k in REBOOT_KEYWORDS)
+    ]
+
+    if not reboot_events:
+        return None, None
+
+    last = sorted(reboot_events, key=lambda e: e["Date"])[-1]
+    return last["Date"], last["Message"]
+
+def build_db_metadata():
     rds = boto3.client("rds")
-    mapping = {}
+    meta = {}
+
     paginator = rds.get_paginator("describe_db_instances")
     for page in paginator.paginate():
-        for db in page.get("DBInstances", []):
-            arn = db.get("DBInstanceArn")
-            ident = db.get("DBInstanceIdentifier")
-            engine = db.get("Engine")
-            if arn and ident:
-                mapping[arn] = {"identifier": ident, "engine": engine}
-    return mapping
+        for db in page["DBInstances"]:
+            db_id = db["DBInstanceIdentifier"]
+            arn = db["DBInstanceArn"]
+            engine = db["Engine"]
+
+            reboot_time, reboot_msg = get_last_reboot(rds, db_id)
+
+            meta[arn] = {
+                "id": db_id,
+                "engine": engine,
+                "last_reboot": reboot_time,
+                "reboot_message": reboot_msg,
+            }
+
+    return meta
 
 def main():
     start_time, end_time = utc_window(DAYS_BACK)
@@ -104,16 +111,8 @@ def main():
     end_str = end_time.strftime("%Y-%m-%d")
     output_file = f"{OUTPUT_PREFIX}_{start_str}_to_{end_str}.md"
 
-    # Cost Explorer client endpoint is ce.us-east-1 (global-ish); region_name not your RDS region. :contentReference[oaicite:6]{index=6}
     ce = boto3.client("ce", region_name="us-east-1")
-
-    # Optional: map resource ARN -> identifier
-    arn_map = {}
-    try:
-        arn_map = build_db_arn_map()
-    except ClientError:
-        # not fatal; we'll just show raw resource IDs
-        arn_map = {}
+    rds_meta = build_db_metadata()
 
     try:
         resp = ce.get_cost_and_usage_with_resources(
@@ -127,102 +126,69 @@ def main():
             ],
         )
     except ClientError as e:
-        print("Cost Explorer resource-level query failed.")
-        print("Most common causes:")
-        print("  - Missing permission: ce:GetCostAndUsageWithResources")
-        print("  - Cost Explorer not enabled / not available for resource-level breakdown in your payer/account")
-        print("Fallback for perfect per-instance monthly cost is CUR + Athena (lineItem/ResourceId).")
-        print(f"\nAWS error:\n{e}")
+        print("ERROR: Cost Explorer resource-level query failed")
+        print(e)
         sys.exit(1)
 
-    # Aggregate: instance -> bucket(fixed/dynamic) -> cost; also keep per-usage-type breakdown
     per_instance = {}
-    per_instance_usage = {}
 
-    for day in resp.get("ResultsByTime", []):
-        for g in day.get("Groups", []):
-            keys = g.get("Keys", [])
-            if len(keys) != 2:
-                continue
-            resource_id, usage_type = keys[0], keys[1]
+    for day in resp["ResultsByTime"]:
+        for g in day["Groups"]:
+            arn, usage = g["Keys"]
             cost = dec(g["Metrics"]["UnblendedCost"]["Amount"])
+            bucket = classify_usage_type(usage)
 
-            bucket = classify_usage_type(usage_type)
+            per_instance.setdefault(arn, {STATE_FIXED: Decimal("0"), STATE_DYNAMIC: Decimal("0")})
+            per_instance[arn][bucket] += cost
 
-            per_instance.setdefault(resource_id, {STATE_FIXED: Decimal("0"), STATE_DYNAMIC: Decimal("0")})
-            per_instance[resource_id][bucket] += cost
+    rows = []
+    for arn, costs in per_instance.items():
+        meta = rds_meta.get(arn, {})
+        total = costs[STATE_FIXED] + costs[STATE_DYNAMIC]
+        rows.append((
+            meta.get("id", arn),
+            meta.get("engine", ""),
+            costs[STATE_FIXED],
+            costs[STATE_DYNAMIC],
+            total,
+            meta.get("last_reboot"),
+            meta.get("reboot_message"),
+            arn
+        ))
 
-            per_instance_usage.setdefault(resource_id, {})
-            per_instance_usage[resource_id].setdefault((bucket, usage_type), Decimal("0"))
-            per_instance_usage[resource_id][(bucket, usage_type)] += cost
+    rows.sort(key=lambda x: x[4], reverse=True)
 
-    # Build sortable summary
-    summary_rows = []
-    for rid, buckets in per_instance.items():
-        fixed = buckets.get(STATE_FIXED, Decimal("0"))
-        dynamic = buckets.get(STATE_DYNAMIC, Decimal("0"))
-        total = fixed + dynamic
-
-        label = rid
-        meta = arn_map.get(rid)
-        if meta:
-            label = f"{meta['identifier']} ({meta.get('engine','')})"
-
-        summary_rows.append((rid, label, fixed, dynamic, total))
-
-    summary_rows.sort(key=lambda x: x[4], reverse=True)
-
-    grand_fixed = sum((r[2] for r in summary_rows), Decimal("0"))
-    grand_dynamic = sum((r[3] for r in summary_rows), Decimal("0"))
-    grand_total = grand_fixed + grand_dynamic
-
-    # Markdown output
+    # ---------------- Markdown ----------------
     md = []
-    md.append("# RDS Cost Report by DB Instance (Fixed vs Dynamic)\n")
+    md.append("# RDS Cost Report by DB Instance (with Last Reboot)\n")
+
     md.append("## Reporting Window\n")
-    md.append(f"- **Start (UTC, pinned to 00:00):** {start_time.isoformat()}")
-    md.append(f"- **End (UTC):** {end_time.isoformat()}")
-    md.append(f"- **Lookback:** Last **{DAYS_BACK}** days\n")
+    md.append(f"- **Start (UTC):** {start_time.isoformat()}")
+    md.append(f"- **End (UTC):** {end_time.isoformat()}\n")
 
-    md.append("## Totals (All DB Instances)\n")
-    md.append(f"- **Fixed:** {money(grand_fixed)}")
-    md.append(f"- **Dynamic:** {money(grand_dynamic)}")
-    md.append(f"- **Total:** {money(grand_total)}\n")
+    md.append("## Per-Instance Summary\n")
+    md.append("| DB Instance | Engine | Fixed | Dynamic | Total | Last Reboot (UTC) |")
+    md.append("|---|---|---:|---:|---:|---|")
 
-    md.append(f"## Per-Instance Summary (Top {MAX_INSTANCES_IN_SUMMARY} by total cost)\n")
-    md.append("| DB Instance | Fixed | Dynamic | Total | ResourceId |")
-    md.append("|---|---:|---:|---:|---|")
-    for rid, label, fixed, dynamic, total in summary_rows[:MAX_INSTANCES_IN_SUMMARY]:
-        md.append(f"| `{label}` | {money(fixed)} | {money(dynamic)} | {money(total)} | `{rid}` |")
+    for r in rows[:MAX_INSTANCES_IN_SUMMARY]:
+        reboot = r[5].isoformat() if r[5] else "N/A"
+        md.append(
+            f"| `{r[0]}` | {r[1]} | {money(r[2])} | {money(r[3])} | {money(r[4])} | {reboot} |"
+        )
 
-    md.append("\n## Top Non-Zero Instances (Detail: top usage-types per instance)\n")
-    for rid, label, fixed, dynamic, total in summary_rows[:MAX_INSTANCES_IN_SUMMARY]:
-        if total <= 0:
-            continue
-
-        md.append(f"### {label}\n")
-        md.append(f"- **Fixed:** {money(fixed)}")
-        md.append(f"- **Dynamic:** {money(dynamic)}")
-        md.append(f"- **Total:** {money(total)}")
-        md.append(f"- **ResourceId:** `{rid}`\n")
-
-        # Top usage types for this resource
-        items = []
-        for (bucket, ut), cost in per_instance_usage.get(rid, {}).items():
-            items.append((bucket, ut, cost))
-        items.sort(key=lambda x: x[2], reverse=True)
-
-        md.append(f"**Top {MAX_LINE_ITEMS_PER_INSTANCE} usage-types:**\n")
-        md.append("| Bucket | UsageType | Cost |")
-        md.append("|---|---|---:|")
-        for bucket, ut, cost in items[:MAX_LINE_ITEMS_PER_INSTANCE]:
-            md.append(f"| {bucket} | `{ut}` | {money(cost)} |")
+    md.append("\n## Instance Details\n")
+    for r in rows[:MAX_INSTANCES_IN_SUMMARY]:
+        md.append(f"### {r[0]}\n")
+        md.append(f"- **Engine:** {r[1]}")
+        md.append(f"- **Fixed cost:** {money(r[2])}")
+        md.append(f"- **Dynamic cost:** {money(r[3])}")
+        md.append(f"- **Total cost:** {money(r[4])}")
+        if r[5]:
+            md.append(f"- **Last reboot:** {r[5].isoformat()}")
+            md.append(f"- **Reboot reason:** {r[6]}")
+        else:
+            md.append("- **Last reboot:** Not found in last 30 days")
         md.append("")
-
-    md.append("## Notes\n")
-    md.append("- This report uses **Cost Explorer resource-level attribution** (`GetCostAndUsageWithResources`) grouped by `RESOURCE_ID`. :contentReference[oaicite:7]{index=7}")
-    md.append("- Cost Explorer supports filtering/grouping by **Resources** (resource IDs). :contentReference[oaicite:8]{index=8}")
-    md.append("- If you need perfect month-long per-instance accuracy in all cases, use **CUR** and query `lineItem/ResourceId` (Athena). :contentReference[oaicite:9]{index=9}")
 
     with open(output_file, "w") as f:
         f.write("\n".join(md))
