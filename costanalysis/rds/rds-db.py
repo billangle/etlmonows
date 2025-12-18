@@ -22,7 +22,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 # ---------------- CONFIG ----------------
-DAYS_BACK = 30
+DAYS_BACK = 14
 GLUE_STYLE_RATE = None  # set to a Decimal like Decimal("0.44") if you want a synthetic rate; otherwise use real billed costs.
 
 MAX_INSTANCES_IN_SUMMARY = 50     # show top N instances by total cost
