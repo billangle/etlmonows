@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/cloudshell-user/etlmonows/costanalysis/dms/dms.py", line 59, in <module>
+      resp = cw.get_metric_statistics(
+        File "/usr/local/lib/python3.9/site-packages/botocore/client.py", line 602, in _api_call
+	    return self._make_api_call(operation_name, kwargs)
+	      File "/usr/local/lib/python3.9/site-packages/botocore/context.py", line 123, in wrapper
+	          return func(*args, **kwargs)
+		    File "/usr/local/lib/python3.9/site-packages/botocore/client.py", line 1078, in _make_api_call
+		        raise error_class(parsed_response, operation_name)
+			botocore.errorfactory.InvalidParameterCombinationException: An error occurred (InvalidParameterCombination) when calling the GetMetricStatistics operation: You have requested up to 4032 datapoints, which exceeds the limit of 1440. You may reduce the datapoints requested by increasing Period, or decreasing the time range.
