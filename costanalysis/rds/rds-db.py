@@ -20,8 +20,10 @@ from botocore.exceptions import ClientError
 
 # ---------------- CONFIG ----------------
 DAYS_BACK = 14
-MAX_INSTANCES_IN_SUMMARY = 50
-MAX_LINE_ITEMS_PER_INSTANCE = 10
+GLUE_STYLE_RATE = None  # set to a Decimal like Decimal("0.44") if you want a synthetic rate; otherwise use real billed costs.
+
+MAX_INSTANCES_IN_SUMMARY = 50     # show top N instances by total cost
+MAX_LINE_ITEMS_PER_INSTANCE = 10  # show top N usage-types per instance in the detail section
 OUTPUT_PREFIX = "rds_instance_cost_report"
 # ----------------------------------------
 
